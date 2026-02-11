@@ -1,0 +1,53 @@
+package objects;
+
+public class Competition {
+
+    /*
+     * League mapping:
+     * 0 - 1. Bundesliga
+     * 1 - 2. Bundesliga
+     * 2 - Oberliga
+     * 3 - Regionaliga
+     * 4 - Bezirksliga
+     * 
+     */
+
+    /*
+     * Event index mapping:
+     * 0 - 50m freestyle
+     * 1 - 100m freestyle
+     * 2 - 200m freestyle
+     * 3 - 400m freestyle
+     * 4 - 800m freestyle
+     * 5 - 1500m freestyle
+     * 6 - 50m backstroke
+     * 7 - 100m backstroke
+     * 8 - 200m backstroke
+     * 9 - 50m breaststroke
+     * 10 - 100m breaststroke
+     * 11 - 200m breaststroke
+     * 12 - 50m butterfly
+     * 13 - 100m butterfly
+     * 14 - 200m butterfly
+     * 15 - 100m individual medley
+     * 16 - 200m individual medley
+     * 17 - 400m individual medley
+     */
+
+    public static double[] baseTimesMale; // contains the base times for each event, used to calculate points
+    public static double[] baseTimesFemale; // contains the base times for each event, used to calculate points
+    public static int league;
+    public static int[] order; // orders events by time, the first eventIndex in the order is the one that
+    // takes place first, and so on
+    // NOTE: every event needs to be included twice (except 800F/1500F)
+
+    public static int calculatePoints(Event event, double time, boolean isMale) {
+        // calculates points for a given event and time using the formula:
+        // points = (baseTime / time) * 1000
+        // where baseTime is the base time for the event in the current league
+        int eventIndex = event.getIndex();
+        double baseTime = isMale ? baseTimesMale[eventIndex] : baseTimesFemale[eventIndex];
+        return (int) (Math.pow(baseTime / time, 3) * 1000); // points are truncated to an integer
+    }
+
+}
