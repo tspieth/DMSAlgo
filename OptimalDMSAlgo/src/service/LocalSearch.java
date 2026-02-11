@@ -1,4 +1,4 @@
-package OptimalDMSAlgo.service;
+package service;
 
 import objects.SwimmingClub;
 
