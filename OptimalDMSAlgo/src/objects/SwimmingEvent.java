@@ -12,7 +12,7 @@ package objects;
  * @since 2026-02-10
  * 
  */
-public enum Event {
+public enum SwimmingEvent {
     FREESTYLE_50(0, "50F"),
     FREESTYLE_100(1, "100F"),
     FREESTYLE_200(2, "200F"),
@@ -39,7 +39,7 @@ public enum Event {
     private final int index;
     private final String displayName;
 
-    Event(int index, String displayName) {
+    SwimmingEvent(int index, String displayName) {
         this.index = index;
         this.displayName = displayName;
     }

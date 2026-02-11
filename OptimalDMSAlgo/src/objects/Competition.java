@@ -34,6 +34,7 @@ public class Competition {
      * 17 - 400m individual medley
      */
 
+    public static int eventCount = SwimmingEvent.values().length; // total number of events in the competition
     public static double[] baseTimesMale; // contains the base times for each event, used to calculate points
     public static double[] baseTimesFemale; // contains the base times for each event, used to calculate points
     public static int league;
@@ -41,13 +42,47 @@ public class Competition {
     // takes place first, and so on
     // NOTE: every event needs to be included twice (except 800F/1500F)
 
-    public static int calculatePoints(Event event, double time, boolean isMale) {
+    public static int calculatePoints(SwimmingEvent event, double time, boolean isMale) {
         // calculates points for a given event and time using the formula:
         // points = (baseTime / time) * 1000
         // where baseTime is the base time for the event in the current league
         int eventIndex = event.getIndex();
         double baseTime = isMale ? baseTimesMale[eventIndex] : baseTimesFemale[eventIndex];
         return (int) (Math.pow(baseTime / time, 3) * 1000); // points are truncated to an integer
+    }
+
+    public static boolean setBaseTimesMale(double[] baseTimes) {
+        if (baseTimes.length != eventCount) {
+            return false; // base times array must have 18 elements, one for each event
+        }
+        baseTimesMale = baseTimes;
+        return true;
+    }
+
+    public static boolean setBaseTimesFemale(double[] baseTimes) {
+        if (baseTimes.length != eventCount) {
+            return false; // base times array must have 18 elements, one for each event
+        }
+        baseTimesFemale = baseTimes;
+        return true;
+    }
+
+    public static String toStringBaseTimes(boolean isMale) {
+        double[] baseTimes = isMale ? baseTimesMale : baseTimesFemale;
+        StringBuilder sb = new StringBuilder();
+
+        // Tableheader
+        String headerFormat = "%-8s | %-10s%n";
+        sb.append(String.format(headerFormat, "Event", "BaseTime" + (isMale ? " (m)" : " (f)")));
+        sb.append("----------------------\n");
+
+        // rows
+        String rowFormat = "%-8s | %-10.3f%n";
+        for (SwimmingEvent event : SwimmingEvent.values()) {
+            sb.append(String.format(rowFormat, event.getDisplayName(), baseTimes[event.getIndex()]));
+        }
+
+        return sb.toString();
     }
 
 }

@@ -81,7 +81,7 @@ public class Swimmer {
      * @param eventIndex
      * @return
      */
-    public int getPointsForEvent(Event event) { // method to get points for a specific event
+    public int getPointsForEvent(SwimmingEvent event) { // method to get points for a specific event
         int eventIndex = event.getIndex();
         if (eventIndex >= 0 && eventIndex < points.length) {
             return points[eventIndex];
@@ -90,7 +90,7 @@ public class Swimmer {
         }
     }
 
-    public void setPointsForEvent(Event event, double time) { // method to set points for a specific event
+    public void setPointsForEvent(SwimmingEvent event, double time) { // method to set points for a specific event
         int eventIndex = event.getIndex();
         if (eventIndex >= 0 && eventIndex < this.points.length) {
             this.points[eventIndex] = Competition.calculatePoints(event, time, this.isMale); // calculate and set
@@ -109,5 +109,11 @@ public class Swimmer {
             }
         }
         return total;
+    }
+
+    public String toString() {
+        return "Name: " + name + "\n," +
+                "Geschlecht: " + (isMale ? "maennlich" : "weiblich") +
+                "\n ";
     }
 }
