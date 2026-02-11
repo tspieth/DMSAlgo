@@ -112,8 +112,21 @@ public class Swimmer {
     }
 
     public String toString() {
-        return "Name: " + name + "\n," +
-                "Geschlecht: " + (isMale ? "maennlich" : "weiblich") +
-                "\n ";
+
+        StringBuilder sb = new StringBuilder();
+
+        // Tableheader
+        String headerFormat = "%-8s | %-10s%n";
+        sb.append(String.format(headerFormat, "Event", "BaseTime" + (isMale ? " (m)" : " (f)")));
+        sb.append("----------------------\n");
+
+        // rows
+        String rowFormat = "%-8s | %-10d%n";
+        for (SwimmingEvent event : SwimmingEvent.values()) {
+            sb.append(String.format(rowFormat, event.getDisplayName(), points[event.getIndex()]));
+        }
+
+        return "Name: " + name + ", Geschlecht: " + (isMale ? "maennlich" : "weiblich") + "\n" + sb.toString();
+
     }
 }

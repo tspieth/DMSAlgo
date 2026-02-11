@@ -13,7 +13,7 @@ public class CSVReader {
 
     // Constructor with default delimiter (semicolon)
     public CSVReader(String filePath) {
-        this(filePath, ","); // Common delimiter is ,
+        this(filePath, ";"); // Common delimiter is ;
     }
 
     public CSVReader(String filePath, String delimiter) {

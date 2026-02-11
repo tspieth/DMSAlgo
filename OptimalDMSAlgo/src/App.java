@@ -3,6 +3,7 @@ import java.util.List;
 
 import io.CSVReader;
 import objects.Competition;
+import objects.Swimmer;
 import objects.SwimmingEvent;
 
 public class App {
@@ -20,7 +21,7 @@ public class App {
     // events in the SwimmingEvent enum
     // ALSO: the CSV file needs to contain every event
     public static double[] getBaseTimes(boolean isMale) {
-        CSVReader baseTimesReader = new CSVReader("/home/timon/DMSAlgo/OptimalDMSAlgo/resources/base_times.csv");
+        CSVReader baseTimesReader = new CSVReader("OptimalDMSAlgo/resources/base_times.csv");
 
         double[] baseTimes = new double[18];
 
@@ -43,4 +44,13 @@ public class App {
 
         return baseTimes;
     }
+
+    public static List<Swimmer> getSwimmersFromCSV(String filePath) {
+        CSVReader swimmersReader = new CSVReader(filePath);
+        List<Swimmer> swimmers = new java.util.ArrayList<>();
+
+        try {
+            swimmersReader.readLineByLine(values -> {
+                String name = values[0] + " " + values[1]; // assuming the first two columns are first name and last name
+                boolean isMale = values[1].equalsIgnoreCase}
 }

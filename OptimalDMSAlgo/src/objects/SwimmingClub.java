@@ -40,4 +40,10 @@ public class SwimmingClub {
                                       // in the team
         }
     }
+
+    public void addMultipleSwimmersToTeam(List<Swimmer> swimmersToAdd) {
+        for (Swimmer swimmer : swimmersToAdd) {
+            addSwimmerToTeam(swimmer); // adds multiple swimmers to the team using the addSwimmerToTeam method
+        }
+    }
 }
