@@ -85,4 +85,22 @@ public class Competition {
         return sb.toString();
     }
 
+    public static double getTimeFromString(String timeString) {
+        // converts a time string in the format "mm:ss.SS" or "ss.SS" to a double
+        // representing the time in seconds
+        String[] parts = timeString.split(":");
+        double time = 0;
+        if (parts.length == 2) {
+            time += Integer.parseInt(parts[0]) * 60; // minutes to seconds
+            time += Double.parseDouble(parts[1]); // seconds
+        } else if (parts.length == 1) {
+            time += Double.parseDouble(parts[0]); // seconds only
+        } else if (parts.length == 0) {
+            time = -1; // -1 indicates no time was provided
+        } else {
+            throw new IllegalArgumentException("Invalid time format: " + timeString);
+        }
+        return time;
+    }
+
 }

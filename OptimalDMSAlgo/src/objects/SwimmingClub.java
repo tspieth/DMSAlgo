@@ -46,4 +46,14 @@ public class SwimmingClub {
             addSwimmerToTeam(swimmer); // adds multiple swimmers to the team using the addSwimmerToTeam method
         }
     }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Swimming Club:\n");
+        for (Swimmer swimmer : swimmers) {
+            sb.append(swimmer.toString()).append("\n");
+            sb.append("*******************************\n");
+        }
+        return sb.toString();
+    }
 }

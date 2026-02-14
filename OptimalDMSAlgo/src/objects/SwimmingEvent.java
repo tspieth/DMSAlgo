@@ -13,12 +13,12 @@ package objects;
  * 
  */
 public enum SwimmingEvent {
-    FREESTYLE_50(0, "50F"),
-    FREESTYLE_100(1, "100F"),
-    FREESTYLE_200(2, "200F"),
-    FREESTYLE_400(3, "400F"),
-    FREESTYLE_800(4, "800F"),
-    FREESTYLE_1500(5, "1500F"),
+    FREESTYLE_50(0, "50K"),
+    FREESTYLE_100(1, "100K"),
+    FREESTYLE_200(2, "200K"),
+    FREESTYLE_400(3, "400K"),
+    FREESTYLE_800(4, "800K"),
+    FREESTYLE_1500(5, "1500K"),
 
     BACKSTROKE_50(6, "50R"),
     BACKSTROKE_100(7, "100R"),
@@ -32,9 +32,9 @@ public enum SwimmingEvent {
     BUTTERFLY_100(13, "100S"),
     BUTTERFLY_200(14, "200S"),
 
-    MEDLEY_100(15, "100IM"),
-    MEDLEY_200(16, "200IM"),
-    MEDLEY_400(17, "400IM");
+    MEDLEY_100(15, "100Lg"),
+    MEDLEY_200(16, "200Lg"),
+    MEDLEY_400(17, "400Lg");
 
     private final int index;
     private final String displayName;
@@ -50,5 +50,14 @@ public enum SwimmingEvent {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public static SwimmingEvent getByDisplayName(String displayName) {
+        for (SwimmingEvent event : values()) {
+            if (event.displayName.equals(displayName)) {
+                return event;
+            }
+        }
+        throw new IllegalArgumentException("No event with display name " + displayName);
     }
 }

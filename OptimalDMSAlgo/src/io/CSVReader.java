@@ -30,7 +30,6 @@ public class CSVReader {
             String line;
 
             while ((line = br.readLine()) != null) {
-                // Zeile aufteilen nach Trennzeichen
                 String[] values = line.split(delimiter);
                 records.add(values);
             }

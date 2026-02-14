@@ -22,10 +22,15 @@ public class Swimmer {
     public static int nextId = 1; // static variable to keep track of the next available ID
     public int id;
     private String name;
+    private int endurance; // endurance level of the swimmer, determines how long breaks have to be between
+                           // events
     private boolean isMale;
-    private boolean[] choosenEvents = new boolean[18]; // contains true for events the swimmer takes, false otherwise
-    private int[] points = new int[18]; // contains points for each event,
+    private double[] times = new double[Competition.eventCount];
+    private boolean[] choosenEvents = new boolean[Competition.eventCount]; // contains true for events the swimmer
+                                                                           // takes, false otherwise
+    private int[] points = new int[Competition.eventCount]; // contains points for each event,
     // when there is no points for an event, the value is -1
+
     /*
      * Event index mapping:
      * 0 - 50m freestyle
@@ -48,13 +53,19 @@ public class Swimmer {
      * 17 - 400m individual medley
      */
 
-    public Swimmer(String name, boolean isMale) {
+    public Swimmer(String name, boolean isMale, int endurance) {
         this.id = nextId++; // assign the current nextId to id and then increment nextId
         this.name = name;
+        this.endurance = endurance;
         this.isMale = isMale;
         Arrays.fill(choosenEvents, false); // initialize all events as not chosen
-        Arrays.fill(points, -1); // initialize all points to -1 (indicating no points)
+        Arrays.fill(points, -1); // initialize all points to -1 (indicating not defined)
+        Arrays.fill(times, -1); // initialize all times to -1
 
+    }
+
+    public Swimmer() {
+        this.id = nextId++;
     }
 
     /**
@@ -75,6 +86,10 @@ public class Swimmer {
         return isMale;
     }
 
+    public int getEndurance() {
+        return endurance;
+    }
+
     /**
      * Gibt die Punkte für ein bestimmtes Event zurück.
      * 
@@ -90,7 +105,29 @@ public class Swimmer {
         }
     }
 
-    public void setPointsForEvent(SwimmingEvent event, double time) { // method to set points for a specific event
+    public int getTotalPoints() { // method to calculate total points across all choosen events
+        int total = 0;
+        for (int i = 0; i < choosenEvents.length; i++) {
+            if (choosenEvents[i]) { // only consider events that the swimmer has chosen
+                total += points[i]; // add points for the event to the total
+            }
+        }
+        return total;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEndurance(int endurance) {
+        this.endurance = endurance;
+    }
+
+    public void setIsMale(boolean isMale) {
+        this.isMale = isMale;
+    }
+
+    public void setPointsForEvent(SwimmingEvent event, double time) {
         int eventIndex = event.getIndex();
         if (eventIndex >= 0 && eventIndex < this.points.length) {
             this.points[eventIndex] = Competition.calculatePoints(event, time, this.isMale); // calculate and set
@@ -101,14 +138,18 @@ public class Swimmer {
         }
     }
 
-    public int getTotalPoints() { // method to calculate total points across all choosen events
-        int total = 0;
-        for (int i = 0; i < choosenEvents.length; i++) {
-            if (choosenEvents[i]) { // only consider events that the swimmer has chosen
-                total += points[i]; // add points for the event to the total
-            }
+    public void setTimeForEvent(SwimmingEvent event, double time) {
+        int eventIndex = event.getIndex();
+        if (eventIndex >= 0 && eventIndex < this.times.length) {
+            this.times[eventIndex] = time; // set time for the event
+        } else {
+            throw new IllegalArgumentException("Invalid event index");
         }
-        return total;
+    }
+
+    public void setTimeForEvent(String event, String time) {
+        SwimmingEvent swimmingEvent = SwimmingEvent.getByDisplayName(event);
+        this.setTimeForEvent(swimmingEvent, Competition.getTimeFromString(time));
     }
 
     public String toString() {

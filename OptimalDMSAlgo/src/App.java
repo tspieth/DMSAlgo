@@ -1,9 +1,11 @@
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import io.CSVReader;
 import objects.Competition;
 import objects.Swimmer;
+import objects.SwimmingClub;
 import objects.SwimmingEvent;
 
 public class App {
@@ -14,6 +16,11 @@ public class App {
 
         System.out.println(Competition.toStringBaseTimes(true));
         System.out.println(Competition.toStringBaseTimes(false));
+
+        List<Swimmer> schwimmerListe = createSchwimmer("OptimalDMSAlgo/resources/testClub.csv");
+
+        SwimmingClub club = new SwimmingClub(schwimmerListe);
+        System.out.println(club.toString());
 
     }
 
@@ -45,12 +52,45 @@ public class App {
         return baseTimes;
     }
 
-    public static List<Swimmer> getSwimmersFromCSV(String filePath) {
-        CSVReader swimmersReader = new CSVReader(filePath);
-        List<Swimmer> swimmers = new java.util.ArrayList<>();
+    public static List<Swimmer> createSchwimmer(String filePath) {
+        CSVReader reader = new CSVReader(filePath);
 
+        List<String[]> csvData;
+        List<Swimmer> schwimmerListe = new ArrayList<>();
         try {
-            swimmersReader.readLineByLine(values -> {
-                String name = values[0] + " " + values[1]; // assuming the first two columns are first name and last name
-                boolean isMale = values[1].equalsIgnoreCase}
+            csvData = reader.readAll();
+            Swimmer aktuellerSchwimmer = null;
+
+            // Header überspringen (erste Zeile)
+            for (int i = 1; i < csvData.size(); i++) {
+
+                String[] row = csvData.get(i);
+
+                // Neue Swimmer-Zeile (Name nicht leer)
+                if (row[0] != null && !row[0].isEmpty()) {
+
+                    aktuellerSchwimmer = new Swimmer(
+                            row[0] + " " + row[1], // Name
+                            (row[2].equals("m")), // Geschlecht
+                            Integer.parseInt(row[3]) // Ausdauer
+                    );
+
+                    schwimmerListe.add(aktuellerSchwimmer);
+                }
+
+                // Strecke + Zeit hinzufügen
+                if (aktuellerSchwimmer != null && row[4] != null && !row[4].isEmpty()) {
+                    aktuellerSchwimmer.setTimeForEvent(row[4], row[5]);
+                    aktuellerSchwimmer.setPointsForEvent(SwimmingEvent.getByDisplayName(row[4]),
+                            Competition.getTimeFromString(row[5]));
+                }
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } // read all lines from the CSV file
+
+        return schwimmerListe;
+    }
+
 }
