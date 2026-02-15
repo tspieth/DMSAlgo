@@ -24,5 +24,9 @@ public class App {
         club.generateLeaderboards();
         System.out.println(club.toStringLeaderboards(5, true));
         System.out.println(club.toStringLeaderboards(5, false));
+
+        int[][] order = CSVReader.getEventOrder("OptimalDMSAlgo/resources/order.csv");
+        Competition.setOrder(order);
+        System.out.println(Competition.toStringOrder());
     }
 }

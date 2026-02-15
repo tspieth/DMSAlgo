@@ -38,13 +38,13 @@ public class Competition {
     public static double[] baseTimesMale; // contains the base times for each event, used to calculate points
     public static double[] baseTimesFemale; // contains the base times for each event, used to calculate points
     public static int league;
-    public static int breakAfter = 33; // the Index afer wich there is a break in the event order
-                                       // default value is 33
     public static int[][] order; // orders events by time, the first eventIndex in the order is the one that
     // takes place first, and so on
     // order[i][0] gives eventIndex
     // order[i][1] gives the approximate time the event takes
-    // NOTE: every event needs to be included twice (except 800F/1500F)
+    // if there is a break order[i][0] is -1 and order[i][1] is the duration of the
+    // break
+    // NOTE: every event needs to be included 4times (except 800F/1500F)
 
     public static int calculatePoints(SwimmingEvent event, double time, boolean isMale) {
         // calculates points for a given event and time using the formula:
@@ -71,13 +71,25 @@ public class Competition {
         return true;
     }
 
-    public static boolean setOrder(int[][] order) {
-        if (order.length != eventCount * 2 - 1) {
-            return false; // order array must twice the number of events minus one
-                          // (because 800F and 1500F only take place once)
-        }
+    public static void setOrder(int[][] order) {
         Competition.order = order;
-        return true;
+    }
+
+    public static String toStringOrder() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Event Order:\n");
+        int j = 1;
+        for (int i = 0; i < order.length; i++) {
+            int eventIndex = order[i][0];
+            int eventTime = order[i][1];
+            if (eventIndex == -1) {
+                sb.append(String.format("------ BREAK (approx. %d min) ------ %n", eventTime));
+                continue;
+            }
+            sb.append(String.format("%02d %5s (approx. %d min)%n", j++,
+                    SwimmingEvent.values()[eventIndex].getDisplayName(), eventTime));
+        }
+        return sb.toString();
     }
 
     public static String toStringBaseTimes(boolean isMale) {

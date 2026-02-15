@@ -136,6 +136,50 @@ public class CSVReader {
         return schwimmerListe;
     }
 
+    /**
+     * Method is refined
+     * The file should have the following format:
+     * Number, EventName, (m/f) -> for Events
+     * or
+     * 00, BREAK, Duration in minutes -> for breaks
+     * 
+     * @param filePath
+     * @return order of the Competition Events
+     * @author Timon Spieth
+     * @since 2026-02-11
+     */
+    public static int[][] getEventOrder(String filePath) {
+        CSVReader reader = new CSVReader(filePath);
+
+        List<String[]> csvData;
+        int[][] orderCompetition = new int[0][2];
+        try {
+            csvData = reader.readAll();
+            orderCompetition = new int[csvData.size() - 1][2];
+            int j = 0; // index for orderCompetition array
+            for (int i = 1; i < csvData.size(); i++) {
+                String[] row = csvData.get(i);
+                if (row[1].equals("BREAK")) {
+                    orderCompetition[j][0] = -1;
+                    orderCompetition[j][1] = Integer.parseInt(row[2]);
+                    j++;
+                    continue;
+                }
+                SwimmingEvent event = SwimmingEvent.getByDisplayName(row[1]);
+                int eventIndex = event.getIndex();
+                int duration = event.getTypicalDuration();
+                orderCompetition[j][0] = eventIndex;
+                orderCompetition[j][1] = duration;
+                j++;
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } // read all lines from the CSV file
+
+        return orderCompetition;
+    }
+
     // Callback interface for processing lines of the CSV file
     public interface LineProcessor {
         void process(String[] values);
