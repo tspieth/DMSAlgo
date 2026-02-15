@@ -38,8 +38,12 @@ public class Competition {
     public static double[] baseTimesMale; // contains the base times for each event, used to calculate points
     public static double[] baseTimesFemale; // contains the base times for each event, used to calculate points
     public static int league;
-    public static int[] order; // orders events by time, the first eventIndex in the order is the one that
+    public static int breakAfter = 33; // the Index afer wich there is a break in the event order
+                                       // default value is 33
+    public static int[][] order; // orders events by time, the first eventIndex in the order is the one that
     // takes place first, and so on
+    // order[i][0] gives eventIndex
+    // order[i][1] gives the approximate time the event takes
     // NOTE: every event needs to be included twice (except 800F/1500F)
 
     public static int calculatePoints(SwimmingEvent event, double time, boolean isMale) {
@@ -64,6 +68,15 @@ public class Competition {
             return false; // base times array must have 18 elements, one for each event
         }
         baseTimesFemale = baseTimes;
+        return true;
+    }
+
+    public static boolean setOrder(int[][] order) {
+        if (order.length != eventCount * 2 - 1) {
+            return false; // order array must twice the number of events minus one
+                          // (because 800F and 1500F only take place once)
+        }
+        Competition.order = order;
         return true;
     }
 

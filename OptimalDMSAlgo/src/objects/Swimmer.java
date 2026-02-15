@@ -138,6 +138,11 @@ public class Swimmer {
         }
     }
 
+    public void setPointsForEvent(String event, String time) {
+        SwimmingEvent swimmingEvent = SwimmingEvent.getByDisplayName(event);
+        this.setPointsForEvent(swimmingEvent, Competition.getTimeFromString(time));
+    }
+
     public void setTimeForEvent(SwimmingEvent event, double time) {
         int eventIndex = event.getIndex();
         if (eventIndex >= 0 && eventIndex < this.times.length) {
@@ -152,19 +157,29 @@ public class Swimmer {
         this.setTimeForEvent(swimmingEvent, Competition.getTimeFromString(time));
     }
 
+    public void updatePoints() {
+        for (int i = 0; i < times.length; i++) {
+            if (times[i] != -1) { // only update points for events that have a defined time
+                setPointsForEvent(SwimmingEvent.values()[i], times[i]);
+            }
+        }
+    }
+
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
 
         // Tableheader
-        String headerFormat = "%-8s | %-10s%n";
-        sb.append(String.format(headerFormat, "Event", "BaseTime" + (isMale ? " (m)" : " (f)")));
-        sb.append("----------------------\n");
+        String headerFormat = "%-8s | %-10s | %-10s%n";
+        ;
+        sb.append(String.format(headerFormat, "Event", "Time", "Points " + (isMale ? " (m)" : " (f)")));
+        sb.append("-----------------------------------\n");
 
         // rows
-        String rowFormat = "%-8s | %-10d%n";
+        String rowFormat = "%-8s | %-10.3f | %-10d%n";
         for (SwimmingEvent event : SwimmingEvent.values()) {
-            sb.append(String.format(rowFormat, event.getDisplayName(), points[event.getIndex()]));
+            sb.append(String.format(rowFormat, event.getDisplayName(), times[event.getIndex()],
+                    points[event.getIndex()]));
         }
 
         return "Name: " + name + ", Geschlecht: " + (isMale ? "maennlich" : "weiblich") + "\n" + sb.toString();

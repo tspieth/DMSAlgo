@@ -1,6 +1,8 @@
 package objects;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Die Klasse SwimmingClub repräsentiert einen Schwimmverein, der an der DMS
@@ -21,6 +23,7 @@ public class SwimmingClub {
     private List<Swimmer> swimmers;
     private List<Swimmer> teamSwimmer; // contains the swimmers that are currently in the competition, used to
                                        // calculate points
+    private Map<SwimmingEvent, List<Swimmer>> leaderboards = new HashMap<SwimmingEvent, List<Swimmer>>();
 
     public SwimmingClub(List<Swimmer> swimmers) {
         this.swimmers = swimmers;
@@ -45,6 +48,10 @@ public class SwimmingClub {
         for (Swimmer swimmer : swimmersToAdd) {
             addSwimmerToTeam(swimmer); // adds multiple swimmers to the team using the addSwimmerToTeam method
         }
+    }
+
+    public List<Swimmer> getAllSwimmer() {
+        return swimmers;
     }
 
     public String toString() {
