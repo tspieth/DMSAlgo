@@ -21,7 +21,8 @@ public class App {
         for (Swimmer schwimmer : club.getAllSwimmer()) {
             schwimmer.updatePoints(); // update points for each swimmer based on their times
         }
-        System.out.println(club.toString());
-
+        club.generateLeaderboards();
+        System.out.println(club.toStringLeaderboards(5, true));
+        System.out.println(club.toStringLeaderboards(5, false));
     }
 }
