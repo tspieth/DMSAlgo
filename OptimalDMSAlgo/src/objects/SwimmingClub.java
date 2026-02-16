@@ -28,6 +28,7 @@ public class SwimmingClub {
 
     public SwimmingClub(List<Swimmer> swimmers) {
         this.swimmers = swimmers;
+        generateLeaderboards();
     }
 
     public void addSwimmerToTeam(Swimmer swimmer) {
@@ -61,6 +62,10 @@ public class SwimmingClub {
     public void generateLeaderboards() {
         generateLeaderboards(true);
         generateLeaderboards(false);
+    }
+
+    public Map<SwimmingEvent, List<Swimmer>> getLeaderboards(boolean isMale) {
+        return isMale ? leaderboardsMale : leaderboardsFemale;
     }
 
     public int getTotalPoints() {

@@ -236,12 +236,37 @@ public class Swimmer {
         }
     }
 
+    public void removeEvent(SwimmingEvent event) {
+        int eventIndex = event.getIndex();
+        if (eventIndex >= 0 && eventIndex < this.choosenEvents.length) {
+            if (this.choosenEvents[eventIndex]) { // only remove the event if it is currently chosen
+                this.choosenEvents[eventIndex] = false; // mark the event as not chosen
+                this.countChoosenEvents--; // decrement the count of chosen events
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid event index");
+        }
+    }
+
     public void updatePoints() {
         for (int i = 0; i < times.length; i++) {
             if (times[i] != -1) { // only update points for events that have a defined time
                 setPointsForEvent(SwimmingEvent.values()[i], times[i]);
             }
         }
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        Swimmer swimmer = (Swimmer) obj;
+        return id == swimmer.id; // swimmers are considered equal if they have the same ID
+    }
+
+    public int hashCode() {
+        return Integer.hashCode(id); // hash code is based on the unique ID of the swimmer
     }
 
     public String toString() {

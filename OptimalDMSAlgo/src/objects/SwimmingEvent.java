@@ -69,4 +69,24 @@ public enum SwimmingEvent {
         }
         throw new IllegalArgumentException("No event with display name " + displayName);
     }
+
+    public int getMinimumBreakTime() {
+        int distance = extractDistance();
+
+        if (distance <= 50)
+            return 15;
+        if (distance <= 100)
+            return 20;
+        if (distance <= 200)
+            return 30;
+        if (distance <= 400)
+            return 45;
+        return 60; // 800 & 1500
+    }
+
+    private int extractDistance() {
+        // liest führende Zahl aus "50K", "200Lg", etc.
+        String digits = displayName.replaceAll("\\D.*", "");
+        return Integer.parseInt(digits);
+    }
 }
