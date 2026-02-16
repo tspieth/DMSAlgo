@@ -38,6 +38,8 @@ public class Competition {
     public static double[] baseTimesMale; // contains the base times for each event, used to calculate points
     public static double[] baseTimesFemale; // contains the base times for each event, used to calculate points
     public static int league;
+    public static int maxEventsPerSwimmer = 5; // maximum number of events a swimmer can choose, used to check if a
+                                               // swimmer can choose more events based on their endurance
     public static int[][] order; // orders events by time, the first eventIndex in the order is the one that
     // takes place first, and so on
     // order[i][0] gives eventIndex

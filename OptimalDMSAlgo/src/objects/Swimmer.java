@@ -25,6 +25,10 @@ public class Swimmer {
     private int endurance; // endurance level of the swimmer, determines how long breaks have to be between
                            // events
     private boolean isMale;
+    private int countChoosenEvents = 0; // keeps track of how many events the swimmer has chosen, used to check if the
+    // swimmer can choose more events based on their endurance
+    private boolean[] eventIndices = new boolean[Competition.order.length]; // used to calculate brektimes between
+                                                                            // events
     private double[] times = new double[Competition.eventCount];
     private boolean[] choosenEvents = new boolean[Competition.eventCount]; // contains true for events the swimmer
                                                                            // takes, false otherwise
@@ -155,6 +159,81 @@ public class Swimmer {
     public void setTimeForEvent(String event, String time) {
         SwimmingEvent swimmingEvent = SwimmingEvent.getByDisplayName(event);
         this.setTimeForEvent(swimmingEvent, Competition.getTimeFromString(time));
+    }
+
+    /**
+     * Choses an event for the swimmer if
+     * -swimmer has not already chosen the maximum number of events
+     * -event is not already chosen
+     * -event index is valid
+     * 
+     * @param event
+     * @return true if the event was successfully chosen
+     * @author Timon Spieth
+     * @since 2026-02-11
+     */
+    private boolean chooseEvent(SwimmingEvent event) {
+        int eventIndex = event.getIndex();
+        if (this.countChoosenEvents >= Competition.maxEventsPerSwimmer) {
+            return false; // swimmer has already chosen the maximum number of events, return false to
+                          // indicate that the event was not chosen
+        }
+        if (eventIndex >= 0 && eventIndex < this.choosenEvents.length) {
+            if (this.choosenEvents[eventIndex]) {
+                return false; // event is already chosen, return false to indicate it was not added again
+            } else {
+                this.choosenEvents[eventIndex] = true; // mark the event as chosen
+                this.countChoosenEvents++; // increment the count of chosen events
+                return true; // event was successfully chosen
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid event index");
+        }
+    }
+
+    public boolean chooseEvent(int competitionIndex) {
+        if (competitionIndex >= 0 && competitionIndex < Competition.order.length) {
+            int eventIndex = Competition.order[competitionIndex][0];
+            if (eventIndex == -1) {
+                return false; // this is a break, not an event, return false to indicate that no event was
+                              // chosen
+            }
+            SwimmingEvent event = SwimmingEvent.values()[eventIndex];
+
+            if (chooseEvent(event)) {
+                eventIndices[competitionIndex] = true; // mark the event index as chosen for break time calculation
+                return true; // event was successfully chosen
+            } else {
+                return false; // event could not be chosen (either max events reached or event already
+                              // chosen), return false to indicate that the event was not chosen
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid competition index");
+        }
+    }
+
+    /**
+     * Checks if the swimmer can choose a specific event
+     * - swimmer has not already chosen the maximum number of events
+     * - event is not already chosen
+     * - event index is valid
+     * 
+     * @param event
+     * @return true if the swimmer can choose the event, false otherwise
+     * @author Timon Spieth
+     * @since 2026-02-11
+     */
+    public boolean canChooseEvent(SwimmingEvent event) {
+        int eventIndex = event.getIndex();
+        if (this.countChoosenEvents >= Competition.maxEventsPerSwimmer) {
+            return false; // swimmer has already chosen the maximum number of events, return false to
+                          // indicate that the event cannot be chosen
+        }
+        if (eventIndex >= 0 && eventIndex < this.choosenEvents.length) {
+            return !this.choosenEvents[eventIndex]; // return true if the event is not already chosen, false otherwise
+        } else {
+            throw new IllegalArgumentException("Invalid event index");
+        }
     }
 
     public void updatePoints() {
