@@ -193,7 +193,7 @@ public class TeamState {
             String swimmerName = swimmer != null ? swimmer.getName() : "No swimmer assigned";
             String gender = swimmer != null ? (swimmer.isMale() ? " (m)" : " (f)") : "";
             int pointsForEvent = swimmer.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
-            sb.append(String.format("%02d %5s: %19s%s %04d%n", j,
+            sb.append(String.format("%02d %5s: %-19s%s %04d%n", j,
                     SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender, pointsForEvent));
             j++;
         }
@@ -205,11 +205,11 @@ public class TeamState {
         StringBuilder sb = new StringBuilder();
         sb.append("Current Swimmers in Team\n");
         for (Swimmer s : lineUp.values().stream()
-                .filter(Objects::nonNull).sorted((a, b) -> Integer.compare(a.getTotalPoints(), b.getTotalPoints()))
+                .filter(Objects::nonNull).sorted((a, b) -> Integer.compare(b.getTotalPoints(), a.getTotalPoints()))
                 .distinct()
                 .toList()) {
-            sb.append(s.getName() + " " + s.getTotalPoints());
-            sb.append("\n");
+            sb.append(String.format("%-19s %04d%n", s.getName(), s.getTotalPoints()));
+
         }
         return sb.toString();
     }

@@ -74,4 +74,8 @@ NOTIZEN zu UPDATE #15
 --> TeamSwimmer Attribut ist wahrscheinlich redundant
 --> fixed the NULL entry in final Lineup
 
+NOTIZEN zu UPDATE #16
+--> Minor changes for toString() Functions
+--> ATTENTION While testing i generated Linups with 23293 points and 23390 that difference is TO BIG
+
 
