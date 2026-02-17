@@ -162,6 +162,7 @@ public class TeamState {
     public void swapAthletes(int orderIndex, int athleteID) {
         Swimmer original = lineUp.get(Integer.valueOf(orderIndex));
         original.removeEvent(orderIndex);
+
         Swimmer athlete = null;
         for (Swimmer s : this.availableSwimmers) {
             if (s.getID() == athleteID) {
@@ -169,6 +170,7 @@ public class TeamState {
             }
         }
         if (athlete != null) {
+            lineUp.put(orderIndex, athlete);
             athlete.chooseEvent(orderIndex);
         }
 

@@ -57,3 +57,7 @@ NOTIZEN zu UPDATE #12
     diesen wird komischerweise erlaubt mehr als 5 Events zu besuchen
     Ebenso funktioniert die Logig beim entfernen eines Sportlers aus dem Lineup nicht
 
+NOTIZEN zu UPDATE #13
+--> änderung der swap Methode in TeamState hat schon etwas behoben Zahlen werden jetzt nichtmehr ganz so groß
+
+
