@@ -39,13 +39,15 @@ public class Competition {
     public static double[] baseTimesFemale; // contains the base times for each event, used to calculate points
     public static int league;
     public static int maxEventsPerSwimmer = 5; // maximum number of events a swimmer can choose
-    public static int[][] order; // orders events by time, the first eventIndex in the order is the one that
+    public static int[][] order;
+    public static int[][] orderMale; // orders events by time, the first eventIndex in the order is the one that
     // takes place first, and so on
     // order[i][0] gives eventIndex
     // order[i][1] gives the approximate time the event takes
     // if there is a break order[i][0] is -1 and order[i][1] is the duration of the
     // break
     // NOTE: every event needs to be included 4times (except 800F/1500F)
+    public static int[][] orderFemale;
 
     public static int calculatePoints(SwimmingEvent event, double time, boolean isMale) {
         // calculates points for a given event and time using the formula:
@@ -72,8 +74,16 @@ public class Competition {
         return true;
     }
 
-    public static void setOrder(int[][] order) {
-        Competition.order = order;
+    public static void setOrder(int[][] newOrder) {
+        order = newOrder;
+    }
+
+    public static void setOrder(int[][] order, boolean isMale) {
+        if (isMale) {
+            orderMale = order;
+        } else {
+            orderFemale = order;
+        }
     }
 
     public static String toStringOrder() {

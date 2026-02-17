@@ -15,6 +15,7 @@ import objects.SwimmingEvent;
 
 public class TeamState {
 
+    private boolean isMale;
     private int totalPoints = 0; // total points of the current team state
     private List<Swimmer> availableSwimmers; // list of swimmers that are currently available
 
@@ -29,6 +30,7 @@ public class TeamState {
     public TeamState(SwimmingClub club, boolean isMale) {
         this.availableSwimmers = club.getAllSwimmer().stream().filter(swimmer -> swimmer.isMale() == isMale).toList();
         this.leaderboards = club.getLeaderboards(isMale); // get the appropriate leaderboards from the club
+        this.isMale = isMale;
         this.lineUp = generateRandomLineUp();
         this.totalPoints = getTotalPoints();
 
@@ -37,6 +39,7 @@ public class TeamState {
     public TeamState(TeamState other) {
 
         this.totalPoints = other.totalPoints;
+        this.isMale = other.isMale;
 
         // Map original -> copy
         Map<Swimmer, Swimmer> copies = new HashMap<>();
@@ -189,8 +192,9 @@ public class TeamState {
             Swimmer swimmer = lineUp.get(i);
             String swimmerName = swimmer != null ? swimmer.getName() : "No swimmer assigned";
             String gender = swimmer != null ? (swimmer.isMale() ? " (m)" : " (f)") : "";
-            sb.append(String.format("%02d %5s: %s%s%n", j,
-                    SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender));
+            int pointsForEvent = swimmer.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
+            sb.append(String.format("%02d %5s: %19s%s %04d%n", j,
+                    SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender, pointsForEvent));
             j++;
         }
         sb.append("Total Points: ").append(getTotalPoints()).append("\n");
@@ -201,7 +205,7 @@ public class TeamState {
         StringBuilder sb = new StringBuilder();
         sb.append("Current Swimmers in Team\n");
         for (Swimmer s : lineUp.values().stream()
-                .filter(Objects::nonNull)
+                .filter(Objects::nonNull).sorted((a, b) -> Integer.compare(a.getTotalPoints(), b.getTotalPoints()))
                 .distinct()
                 .toList()) {
             sb.append(s.getName() + " " + s.getTotalPoints());

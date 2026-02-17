@@ -59,6 +59,7 @@ public class Swimmer {
             this.name = other.name;
             this.endurance = other.endurance;
             this.isMale = other.isMale;
+            this.countChoosenEvents = other.countChoosenEvents;
 
             this.choosenEvents = Arrays.copyOf(other.choosenEvents, other.choosenEvents.length);
             this.points = Arrays.copyOf(other.points, other.points.length);
@@ -95,6 +96,10 @@ public class Swimmer {
 
     public int getEndurance() {
         return endurance;
+    }
+
+    public int getEventCount() {
+        return this.countChoosenEvents;
     }
 
     /**

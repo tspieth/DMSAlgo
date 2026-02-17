@@ -60,4 +60,14 @@ NOTIZEN zu UPDATE #12
 NOTIZEN zu UPDATE #13
 --> änderung der swap Methode in TeamState hat schon etwas behoben Zahlen werden jetzt nichtmehr ganz so groß
 
+NOTIZEN zu UPDATE #14
+-->Berrechnung funktioniert glaube Ich
+--> Bug das im finalen lineup ein null schwimmer ist Warum weiß ich nicht muss ich pruefen wahrscheinlich etwas im 
+    Kopier Constructor von TeamState
+--> CSVReader hat jetzt eine funktion mit welcher er die EventOrder für Männer UND Frauen einzeln lesen kann
+--> ACHTUNG: AKTUELL FUNKTIONIERT ES NUR DAS TEAMSTATE DIE ORDER VON COMPETITION NIMMT WENN DIESE ZUM GENDER PASST
+             ES MUSS GEAENDERT WERDEN, DASS TEAMSTATE mit GENDER erstellt wird und dann nur auf 
+             ORDERMALE oder ORDERFEMALE
+             operiert
+
 

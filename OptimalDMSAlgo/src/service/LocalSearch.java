@@ -32,10 +32,29 @@ public class LocalSearch {
             if (bestNeighbor.getTotalPoints() <= currentState.getTotalPoints()) {
                 break;
             }
-            System.out.println(currentState.getTotalPoints());
+            // System.out.println(currentState.getTotalPoints());
             currentState = bestNeighbor;
         }
+        System.out.println(currentState.toStringTeamSwimmers());
+        System.out.println(currentState.toStringLineUp());
+        return currentState.getTotalPoints(); // return the value of the final state
+    }
 
+    public static int hillClimbingRandom(TeamState current) {
+
+        TeamState currentState = current;
+
+        while (true) {
+            List<TeamState> neighbors = currentState.createAllNeighbors();
+            TeamState bestNeighbor = TeamState.getBestState(neighbors);
+            if (bestNeighbor.getTotalPoints() <= currentState.getTotalPoints()) {
+                break;
+            }
+            // System.out.println(currentState.getTotalPoints());
+            currentState = bestNeighbor;
+        }
+        System.out.println(currentState.toStringTeamSwimmers());
+        System.out.println(currentState.toStringLineUp());
         return currentState.getTotalPoints(); // return the value of the final state
     }
 

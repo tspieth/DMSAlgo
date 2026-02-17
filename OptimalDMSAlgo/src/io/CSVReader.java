@@ -112,11 +112,14 @@ public class CSVReader {
 
                 // Neue Swimmer-Zeile (Name nicht leer)
                 if (row[0] != null && !row[0].isEmpty()) {
-
+                    int ausdauer = 50;
+                    if (row[3] != "") {
+                        ausdauer = Integer.parseInt(row[3]);
+                    }
                     aktuellerSchwimmer = new Swimmer(
                             row[0] + " " + row[1], // Name
                             (row[2].equals("m")), // Geschlecht
-                            Integer.parseInt(row[3]) // Ausdauer
+                            ausdauer // Ausdauer
                     );
 
                     schwimmerListe.add(aktuellerSchwimmer);
@@ -171,6 +174,39 @@ public class CSVReader {
                 orderCompetition[j][0] = eventIndex;
                 orderCompetition[j][1] = duration;
                 j++;
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } // read all lines from the CSV file
+
+        return orderCompetition;
+    }
+
+    public static int[][] getEventOrder(String filePath, boolean isMale) {
+        CSVReader reader = new CSVReader(filePath);
+
+        List<String[]> csvData;
+        int[][] orderCompetition = new int[0][2];
+        try {
+            csvData = reader.readAll();
+            csvData = csvData.stream().filter(s -> s[2].equals(isMale ? "m" : "f") || s[1].equals("BREAK")).toList();
+            orderCompetition = new int[csvData.size()][2];
+
+            for (int i = 0; i < csvData.size(); i++) {
+                String[] row = csvData.get(i);
+                if (row[1].equals("BREAK")) {
+                    orderCompetition[i][0] = -1;
+                    orderCompetition[i][1] = Integer.parseInt(row[2]);
+
+                    continue;
+                }
+                SwimmingEvent event = SwimmingEvent.getByDisplayName(row[1]);
+                int eventIndex = event.getIndex();
+                int duration = event.getTypicalDuration();
+                orderCompetition[i][0] = eventIndex;
+                orderCompetition[i][1] = duration;
+
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
