@@ -1,0 +1,59 @@
+Wir haben folgende Struktur:
+
+     * Event index mapping:
+     * 0 - 50m freestyle
+     * 1 - 100m freestyle
+     * 2 - 200m freestyle
+     * 3 - 400m freestyle
+     * 4 - 800m freestyle
+     * 5 - 1500m freestyle
+     * 6 - 50m backstroke
+     * 7 - 100m backstroke
+     * 8 - 200m backstroke
+     * 9 - 50m breaststroke
+     * 10 - 100m breaststroke
+     * 11 - 200m breaststroke
+     * 12 - 50m butterfly
+     * 13 - 100m butterfly
+     * 14 - 200m butterfly
+     * 15 - 100m individual medley
+     * 16 - 200m individual medley
+     * 17 - 400m individual medley
+
+    Klassen:
+        *   Swimmer: Repräsentiert einen Schwimmer
+            Bestandteile -> public static int nextId = 1; 
+                            public int id;
+                            private String name;
+                            private int endurance; 
+                            private boolean isMale;
+                            private int countChoosenEvents = 0; 
+                            private boolean[] eventIndices = new boolean[Competition.order.length]; 
+                            private double[] times = new double[Competition.eventCount];
+                            private boolean[] choosenEvents = new boolean[Competition.eventCount]; 
+                            private int[] points = new int[Competition.eventCount]; 
+            Aktuell ist es so, dass Berechnung einer TeamPunktzahl die Punkte aller Sportler, 
+            des Teams addiert werden.
+            Grund: Leichtere Implementierung von Punktabzuegen bei zu kurzen Pausenzeiten o.ä
+
+        *   Competition: Repräsentiert einen DMS Wettkampf
+            Bestandteile -> public static int eventCount = SwimmingEvent.values().length; // total number of events in the competition
+                            public static double[] baseTimesMale; // contains the base times for each event, used to calculate points
+                            public static double[] baseTimesFemale; // contains the base times for each event, used to calculate points
+                            public static int league;
+                            public static int maxEventsPerSwimmer = 5; // maximum number of events a swimmer can choose
+                            public static int[][] order;
+            ACHTUNG: Ist nicht von Beginn an vollstaendig implementiert 
+                    => Muss zu beginn vollstaendig erstellt werden
+                    => order.csv muss eingelesen werden um order festzulegen
+                    => base_times.csv muss eingelesen werden um baseTimesFemale und baseTimesMale festzulegen
+                    GRUND: diese Attribute werden sich womöglich am haeufigsten aendern
+
+        *   SwimmingClub: Repräsentiert einen Schwimmverein
+
+
+NOTIZEN zu UPDATE #12
+--> Ich habe relativ viel verändert es gibt ein problem mit den Schwimmern 
+    diesen wird komischerweise erlaubt mehr als 5 Events zu besuchen
+    Ebenso funktioniert die Logig beim entfernen eines Sportlers aus dem Lineup nicht
+

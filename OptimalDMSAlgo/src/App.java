@@ -1,10 +1,12 @@
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.CSVReader;
 import objects.Competition;
 import objects.Swimmer;
 import objects.SwimmingClub;
+import service.LocalSearch;
 import service.TeamState;
 
 public class App {
@@ -20,7 +22,7 @@ public class App {
         System.out.println(Competition.toStringBaseTimes(true));
         System.out.println(Competition.toStringBaseTimes(false));
 
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/testClubRealNames.csv");
+        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/testClub.csv");
 
         SwimmingClub club = new SwimmingClub(schwimmerListe);
         for (Swimmer schwimmer : club.getAllSwimmer()) {
@@ -31,6 +33,8 @@ public class App {
         System.out.println(club.toStringLeaderboards(5, false));
 
         TeamState teamState = new TeamState(club, true);
-        System.out.println(teamState.toStringLineUp());
+        System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());
+        System.out.println("Punkte nach HillClimb " + LocalSearch.hillClimbing(teamState));
     }
+
 }

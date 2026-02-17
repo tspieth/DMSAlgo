@@ -25,8 +25,7 @@ public class Swimmer {
     private int endurance; // endurance level of the swimmer, determines how long breaks have to be between
                            // events
     private boolean isMale;
-    private int countChoosenEvents = 0; // keeps track of how many events the swimmer has chosen, used to check if the
-    // swimmer can choose more events based on their endurance
+    private int countChoosenEvents = 0; // keeps track of how many events the swimmer has chosen
     private boolean[] eventIndices = new boolean[Competition.order.length]; // used to calculate brektimes between
                                                                             // events
     private double[] times = new double[Competition.eventCount];
@@ -35,41 +34,45 @@ public class Swimmer {
     private int[] points = new int[Competition.eventCount]; // contains points for each event,
     // when there is no points for an event, the value is -1
 
-    /*
-     * Event index mapping:
-     * 0 - 50m freestyle
-     * 1 - 100m freestyle
-     * 2 - 200m freestyle
-     * 3 - 400m freestyle
-     * 4 - 800m freestyle
-     * 5 - 1500m freestyle
-     * 6 - 50m backstroke
-     * 7 - 100m backstroke
-     * 8 - 200m backstroke
-     * 9 - 50m breaststroke
-     * 10 - 100m breaststroke
-     * 11 - 200m breaststroke
-     * 12 - 50m butterfly
-     * 13 - 100m butterfly
-     * 14 - 200m butterfly
-     * 15 - 100m individual medley
-     * 16 - 200m individual medley
-     * 17 - 400m individual medley
-     */
+    // ============================================================= //
+    // Konstruktoren //
+    // ============================================================= //
 
     public Swimmer(String name, boolean isMale, int endurance) {
         this.id = nextId++; // assign the current nextId to id and then increment nextId
+
         this.name = name;
         this.endurance = endurance;
         this.isMale = isMale;
+
         Arrays.fill(choosenEvents, false); // initialize all events as not chosen
         Arrays.fill(points, -1); // initialize all points to -1 (indicating not defined)
         Arrays.fill(times, -1); // initialize all times to -1
 
     }
 
-    public Swimmer() {
-        this.id = nextId++;
+    // Copy constructor creates DEEP COPY
+    public Swimmer(Swimmer other) {
+        if (other != null) {
+            this.id = other.id;
+
+            this.name = other.name;
+            this.endurance = other.endurance;
+            this.isMale = other.isMale;
+
+            this.choosenEvents = Arrays.copyOf(other.choosenEvents, other.choosenEvents.length);
+            this.points = Arrays.copyOf(other.points, other.points.length);
+            this.times = Arrays.copyOf(other.times, other.times.length);
+        }
+
+    }
+
+    // ============================================================= //
+    // Getter //
+    // ============================================================= //
+
+    public int getID() {
+        return this.id;
     }
 
     /**
@@ -119,6 +122,10 @@ public class Swimmer {
         return total;
     }
 
+    // ============================================================= //
+    // Setter //
+    // ============================================================= //
+
     public void setName(String name) {
         this.name = name;
     }
@@ -160,6 +167,10 @@ public class Swimmer {
         SwimmingEvent swimmingEvent = SwimmingEvent.getByDisplayName(event);
         this.setTimeForEvent(swimmingEvent, Competition.getTimeFromString(time));
     }
+
+    // ============================================================= //
+    // Methoden (MAYBE BETTER SORTABLE) //
+    // ============================================================= //
 
     /**
      * Choses an event for the swimmer if
@@ -236,15 +247,38 @@ public class Swimmer {
         }
     }
 
-    public void removeEvent(SwimmingEvent event) {
+    public boolean removeEvent(SwimmingEvent event) {
         int eventIndex = event.getIndex();
         if (eventIndex >= 0 && eventIndex < this.choosenEvents.length) {
             if (this.choosenEvents[eventIndex]) { // only remove the event if it is currently chosen
                 this.choosenEvents[eventIndex] = false; // mark the event as not chosen
                 this.countChoosenEvents--; // decrement the count of chosen events
+                return true;
+            } else {
+                return false;
             }
         } else {
             throw new IllegalArgumentException("Invalid event index");
+        }
+    }
+
+    public boolean removeEvent(int competitionIndex) {
+        if (competitionIndex >= 0 && competitionIndex < Competition.order.length) {
+            int eventIndex = Competition.order[competitionIndex][0];
+            if (eventIndex == -1) {
+                return false; // this is a break, not an event, return false to indicate that no event was
+                              // chosen
+            }
+            SwimmingEvent event = SwimmingEvent.values()[eventIndex];
+
+            if (removeEvent(event)) {
+                eventIndices[competitionIndex] = false;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid competition index");
         }
     }
 
