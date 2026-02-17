@@ -70,4 +70,8 @@ NOTIZEN zu UPDATE #14
              ORDERMALE oder ORDERFEMALE
              operiert
 
+NOTIZEN zu UPDATE #15
+--> TeamSwimmer Attribut ist wahrscheinlich redundant
+--> fixed the NULL entry in final Lineup
+
 

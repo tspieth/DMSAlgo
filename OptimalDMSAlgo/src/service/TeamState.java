@@ -64,7 +64,7 @@ public class TeamState {
         // lineUp
         this.lineUp = new HashMap<>();
         for (Map.Entry<Integer, Swimmer> e : other.lineUp.entrySet()) {
-            if (e.getKey().intValue() == -1) {
+            if (e.getValue() == null) {
                 continue; // breaks dont have to be copied
             }
             this.lineUp.put(e.getKey(), copySwimmer.apply(e.getValue()));

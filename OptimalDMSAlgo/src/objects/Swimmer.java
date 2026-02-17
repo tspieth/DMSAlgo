@@ -53,18 +53,18 @@ public class Swimmer {
 
     // Copy constructor creates DEEP COPY
     public Swimmer(Swimmer other) {
-        if (other != null) {
-            this.id = other.id;
+        // if (other != null) {
+        this.id = other.id;
 
-            this.name = other.name;
-            this.endurance = other.endurance;
-            this.isMale = other.isMale;
-            this.countChoosenEvents = other.countChoosenEvents;
+        this.name = other.name;
+        this.endurance = other.endurance;
+        this.isMale = other.isMale;
+        this.countChoosenEvents = other.countChoosenEvents;
 
-            this.choosenEvents = Arrays.copyOf(other.choosenEvents, other.choosenEvents.length);
-            this.points = Arrays.copyOf(other.points, other.points.length);
-            this.times = Arrays.copyOf(other.times, other.times.length);
-        }
+        this.choosenEvents = Arrays.copyOf(other.choosenEvents, other.choosenEvents.length);
+        this.points = Arrays.copyOf(other.points, other.points.length);
+        this.times = Arrays.copyOf(other.times, other.times.length);
+        // }
 
     }
 
