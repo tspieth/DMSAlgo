@@ -111,6 +111,10 @@ public class TeamState {
         return lineUp;
     }
 
+    public void newRandomLineUp() {
+        this.lineUp = this.generateRandomLineUp();
+    }
+
     public Swimmer getRandomSwimmerForEvent(SwimmingEvent event, int orderIndex) {
         List<Swimmer> valid = leaderboards.get(event).stream()
                 .filter(s -> s.canChooseOrderIndex(orderIndex))

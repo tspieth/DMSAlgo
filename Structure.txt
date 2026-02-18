@@ -78,4 +78,7 @@ NOTIZEN zu UPDATE #16
 --> Minor changes for toString() Functions
 --> ATTENTION While testing i generated Linups with 23293 points and 23390 that difference is TO BIG
 
-
+#18 BUG wurde gefixed 
+New Bug occurs  or else it is need to quickly reset Teamstate linups so we
+can better USE HillclimbWithKResets
+OPTIMIZATION is needed Currently each Hillclimb takes ca.5s wich is way to long

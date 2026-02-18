@@ -35,23 +35,16 @@ public class App {
             schwimmer.updatePoints(); // update points for each swimmer based on their times
         }
         club.generateLeaderboards();
-        System.out.println(club.toStringLeaderboards(5, true));
+        // System.out.println(club.toStringLeaderboards(5, true));
         // System.out.println(club.toStringLeaderboards(5, false));
 
         TeamState teamState = new TeamState(club, true);
 
-        for (TeamState t : teamState.createNeighbors(23)) {
-            for (TeamState t1 : t.createNeighbors(23)) {
-                System.out.println(t1.toStringOnly(23));
-            }
-            break;
-
-        }
-        // System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());
-        // System.out.println(teamState.toStringTeamSwimmers());
-        // System.out.println(teamState.toStringLineUp());
-        // System.out.println("Punkte nach HillClimb " +
-        // LocalSearch.hillClimbing(teamState));
+        System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());
+        System.out.println(teamState.toStringTeamSwimmers());
+        System.out.println(teamState.toStringLineUp());
+        System.out.println("Punkte nach HillClimb " +
+                LocalSearch.hillClimbingWithKStarts(200).getTotalPoints());
     }
 
 }

@@ -275,7 +275,7 @@ public class Swimmer {
         }
 
         if (canChooseEvent(event)) {
-            if (hasEnoughBreak(orderIndex)) {
+            if (hasEnoughBreak(orderIndex) && hasEnoughBreakAfter(orderIndex)) {
                 return true;
             }
             return false;
@@ -314,9 +314,40 @@ public class Swimmer {
             return true; // swimmer has no choosen event;
         }
         int needed = SwimmingEvent.values()[eventIndex].getMinimumBreakTime();
-        if (currentBreakTime < needed) {
+        if (currentBreakTime <= needed) {
             // System.out.println(this.id + ". Pause ist zu Kurz " + orderIndex + " " +
             // currentBreakTime);
+            return false;
+        }
+        return true;
+    }
+
+    // Maybe needs an Overlook works for now
+    public boolean hasEnoughBreakAfter(int orderIndex) {
+
+        int event = Competition.order[orderIndex][0];
+        int breakNeeded = SwimmingEvent.values()[event].getMinimumBreakTime();
+        int currentIndex = orderIndex + 1;
+        int currentBreakTime = 0;
+        boolean hasEventAfter = false;
+
+        for (; currentIndex < Competition.order.length; currentIndex++) {
+            if (currentBreakTime >= breakNeeded) {
+                return true;
+            }
+            int eventIndex = Competition.order[currentIndex][0];
+            if (!eventIndices[currentIndex]) {
+                if (eventIndex == -1) {
+                    currentBreakTime += Competition.order[currentIndex][1];
+                } else {
+                    currentBreakTime += SwimmingEvent.values()[eventIndex].getTypicalDuration();
+                }
+            } else {
+                hasEventAfter = true;
+                break;
+            }
+        }
+        if (hasEventAfter && (currentBreakTime <= breakNeeded)) {
             return false;
         }
         return true;
@@ -393,6 +424,11 @@ public class Swimmer {
                 setPointsForEvent(SwimmingEvent.values()[i], times[i]);
             }
         }
+    }
+
+    public void resetChoosenEvents() {
+        Arrays.fill(eventIndices, false);
+        Arrays.fill(choosenEvents, false);
     }
 
     public boolean equals(Object obj) {
