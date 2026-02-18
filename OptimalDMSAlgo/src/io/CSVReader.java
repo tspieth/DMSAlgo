@@ -183,6 +183,12 @@ public class CSVReader {
         return orderCompetition;
     }
 
+    /**
+     * 
+     * @param filePath
+     * @param isMale
+     * @return
+     */
     public static int[][] getEventOrder(String filePath, boolean isMale) {
         CSVReader reader = new CSVReader(filePath);
 
@@ -190,22 +196,30 @@ public class CSVReader {
         int[][] orderCompetition = new int[0][2];
         try {
             csvData = reader.readAll();
-            csvData = csvData.stream().filter(s -> s[2].equals(isMale ? "m" : "f") || s[1].equals("BREAK")).toList();
-            orderCompetition = new int[csvData.size()][2];
-
-            for (int i = 0; i < csvData.size(); i++) {
+            orderCompetition = new int[csvData.size() - 1][2];
+            int j = 0;
+            for (int i = 1; i < csvData.size(); i++) {
                 String[] row = csvData.get(i);
                 if (row[1].equals("BREAK")) {
-                    orderCompetition[i][0] = -1;
-                    orderCompetition[i][1] = Integer.parseInt(row[2]);
-
+                    orderCompetition[j][0] = -1;
+                    orderCompetition[j][1] = Integer.parseInt(row[2]);
+                    j++;
                     continue;
                 }
+
                 SwimmingEvent event = SwimmingEvent.getByDisplayName(row[1]);
                 int eventIndex = event.getIndex();
                 int duration = event.getTypicalDuration();
-                orderCompetition[i][0] = eventIndex;
-                orderCompetition[i][1] = duration;
+
+                if (row[2].equals(isMale ? "f" : "m")) {
+                    orderCompetition[j][0] = -2; // marks events from other gender
+                    orderCompetition[j][1] = duration;
+                    j++;
+                } else {
+                    orderCompetition[j][0] = eventIndex;
+                    orderCompetition[j][1] = duration;
+                    j++;
+                }
 
             }
         } catch (IOException e) {

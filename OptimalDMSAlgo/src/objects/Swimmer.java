@@ -45,6 +45,7 @@ public class Swimmer {
         this.endurance = endurance;
         this.isMale = isMale;
 
+        Arrays.fill(eventIndices, false);
         Arrays.fill(choosenEvents, false); // initialize all events as not chosen
         Arrays.fill(points, -1); // initialize all points to -1 (indicating not defined)
         Arrays.fill(times, -1); // initialize all times to -1
@@ -61,6 +62,7 @@ public class Swimmer {
         this.isMale = other.isMale;
         this.countChoosenEvents = other.countChoosenEvents;
 
+        this.eventIndices = Arrays.copyOf(other.eventIndices, other.eventIndices.length);
         this.choosenEvents = Arrays.copyOf(other.choosenEvents, other.choosenEvents.length);
         this.points = Arrays.copyOf(other.points, other.points.length);
         this.times = Arrays.copyOf(other.times, other.times.length);
@@ -252,7 +254,105 @@ public class Swimmer {
         }
     }
 
-    public boolean removeEvent(SwimmingEvent event) {
+    public boolean canChooseOrderIndex(int orderIndex) {
+
+        SwimmingEvent event;
+
+        // Quick check if the orderIndex is available
+        // If it is event is Initalised with correct event
+        if (this.isMale) {
+            int eventIndex = Competition.orderMale[orderIndex][0];
+            if (eventIndex < 0) {
+                return false; // break or female Event
+            }
+            event = SwimmingEvent.values()[eventIndex];
+        } else {
+            int eventIndex = Competition.orderFemale[orderIndex][0];
+            if (eventIndex < 0) {
+                return false; // break or male Event
+            }
+            event = SwimmingEvent.values()[eventIndex];
+        }
+
+        if (canChooseEvent(event)) {
+            if (hasEnoughBreak(orderIndex)) {
+                return true;
+            }
+            return false;
+        } else {
+            return false;
+        }
+    }
+
+    // PROBABLY UPDATE NEEDED since UPDATE #17
+    // UPDATE BECAUSE MAYBE CRITICAL FOR MINIMUM BREAK TIMES
+    // IT IS IMPOSSIBLE TO KNOW BEFOREHAND IN WICH HEAT A ATHLETE STARTS WICH MAY BE
+    // CRITICAL FOR BREAK TIMES
+
+    // For simplicity this methode supposes that the athlete starts in the last heat
+    // of the
+    // last event he compeated in and in the first of the order index
+    public boolean hasEnoughBreak(int orderIndex) {
+        int currentIndex = orderIndex - 1;
+        int currentBreakTime = 0;
+        int eventIndex = Competition.order[currentIndex][0];
+
+        for (; currentIndex >= 0; currentIndex--) {
+            eventIndex = Competition.order[currentIndex][0];
+            if (!eventIndices[currentIndex]) {
+
+                if (eventIndex == -1) {
+                    currentBreakTime += Competition.order[currentIndex][1];
+                } else {
+                    currentBreakTime += SwimmingEvent.values()[eventIndex].getTypicalDuration();
+                }
+            } else {
+                break; // last Compeating Event found
+            }
+        }
+        if (currentIndex < 0) {
+            return true; // swimmer has no choosen event;
+        }
+        int needed = SwimmingEvent.values()[eventIndex].getMinimumBreakTime();
+        if (currentBreakTime < needed) {
+            // System.out.println(this.id + ". Pause ist zu Kurz " + orderIndex + " " +
+            // currentBreakTime);
+            return false;
+        }
+        return true;
+    }
+
+    public String hasBreakBefore(int orderIndex) {
+        int currentIndex = orderIndex - 1;
+        int currentBreakTime = 0;
+        int eventIndex = Competition.order[currentIndex][0];
+        for (; currentIndex >= 0; currentIndex--) {
+            eventIndex = Competition.order[currentIndex][0];
+            if (!eventIndices[currentIndex]) {
+
+                if (eventIndex == -1) {
+                    currentBreakTime += Competition.order[currentIndex][1];
+                } else {
+                    currentBreakTime += SwimmingEvent.values()[eventIndex].getTypicalDuration();
+                }
+            } else {
+                break; // last Compeating Event found
+            }
+        }
+        if (currentIndex < 0) {
+            return "Infinity"; // swimmer has no choosen event;
+        }
+        int needed = SwimmingEvent.values()[eventIndex].getMinimumBreakTime();
+        if (currentBreakTime < needed) {
+            return "Pause ist zu Kurz " + currentBreakTime + " " + needed;
+
+        }
+        return Integer.toString(currentBreakTime) + "min";
+    }
+
+    // should only be called from class
+    // HELPER METHOD for removeEvent(int orderIndex)
+    private boolean removeEvent(SwimmingEvent event) {
         int eventIndex = event.getIndex();
         if (eventIndex >= 0 && eventIndex < this.choosenEvents.length) {
             if (this.choosenEvents[eventIndex]) { // only remove the event if it is currently chosen

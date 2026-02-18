@@ -86,6 +86,16 @@ public class Competition {
         }
     }
 
+    /**
+     * Prints the Event Order
+     * Attention: eventOrderMale/eventOrderFemale have a different Typ
+     * order[i][0] could be -2 so an Error will occure if order[][] is faultfully
+     * assigned
+     * 
+     * @return eventOrder as String
+     * @author Timon Spieth
+     * @version 1
+     */
     public static String toStringOrder() {
         StringBuilder sb = new StringBuilder();
         sb.append("Event Order:\n");

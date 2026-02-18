@@ -18,6 +18,7 @@ public class TeamState {
     private boolean isMale;
     private int totalPoints = 0; // total points of the current team state
     private List<Swimmer> availableSwimmers; // list of swimmers that are currently available
+    private int[][] order; // selects Copy for GenderSpecific order from Competition
 
     // Maybe little bit complicated to have teamSwimmers and lineUp
     // teamSwimmer is mainly for calculating the total points of the team
@@ -31,6 +32,8 @@ public class TeamState {
         this.availableSwimmers = club.getAllSwimmer().stream().filter(swimmer -> swimmer.isMale() == isMale).toList();
         this.leaderboards = club.getLeaderboards(isMale); // get the appropriate leaderboards from the club
         this.isMale = isMale;
+        this.order = isMale ? Competition.orderMale : Competition.orderFemale;
+
         this.lineUp = generateRandomLineUp();
         this.totalPoints = getTotalPoints();
 
@@ -40,6 +43,7 @@ public class TeamState {
 
         this.totalPoints = other.totalPoints;
         this.isMale = other.isMale;
+        this.order = other.order;
 
         // Map original -> copy
         Map<Swimmer, Swimmer> copies = new HashMap<>();
@@ -83,11 +87,21 @@ public class TeamState {
         }
     }
 
+    // MUST ADD FUNCTION THAT ABBORTS TEAM STATE IF THERE IS NO POSSIBLE RANDOM
+    // LINEUP
+    // MUST ENSURE THAT IF THERE IS MIN 1 RANDOM LINUP THAT THIS LINEUP IS FOUND
     private Map<Integer, Swimmer> generateRandomLineUp() {
         Map<Integer, Swimmer> lineUp = new HashMap<>();
 
-        for (int i = 0; i < Competition.order.length; i++) {
+        for (int i = 0; i < this.order.length; i++) {
             Swimmer randomSwimmer = getRandomSwimmerForCompetition(i);
+
+            if ((randomSwimmer == null && order[i][0] != -1) &&
+                    order[i][0] != -2) {
+                System.out.println("Es konnte kein Linup gebildet werden.");
+                return null;
+            }
+
             lineUp.put(i, randomSwimmer);
         }
         this.teamSwimmers = lineUp.values().stream()
@@ -99,7 +113,7 @@ public class TeamState {
 
     public Swimmer getRandomSwimmerForEvent(SwimmingEvent event, int orderIndex) {
         List<Swimmer> valid = leaderboards.get(event).stream()
-                .filter(s -> s.canChooseEvent(event))
+                .filter(s -> s.canChooseOrderIndex(orderIndex))
                 .toList();
 
         if (valid.isEmpty())
@@ -113,12 +127,14 @@ public class TeamState {
 
     public Swimmer getRandomSwimmerForCompetition(int orderIndex) {
 
-        int eventIndex = Competition.order[orderIndex][0];
+        int eventIndex = this.order[orderIndex][0];
 
         if (eventIndex == -1) {
             return null; // if there is a break, return null
         }
-
+        if (eventIndex == -2) {
+            return null; // if the event is for the other gender
+        }
         return getRandomSwimmerForEvent(SwimmingEvent.values()[eventIndex], orderIndex);
     }
 
@@ -135,8 +151,8 @@ public class TeamState {
 
     public List<TeamState> createAllNeighbors() {
         List<TeamState> neighbors = new ArrayList<TeamState>();
-        for (int i = 0; i < Competition.order.length; i++) {
-            if (Competition.order[i][0] == -1) {
+        for (int i = 0; i < this.order.length; i++) {
+            if (this.order[i][0] == -1 || this.order[i][0] == -2) {
                 continue; // No neighbor for breaks needed
             }
             neighbors.addAll(createNeighbors(i));
@@ -144,14 +160,14 @@ public class TeamState {
         return neighbors;
     }
 
+    // eventIndex should be a available EVENT in class SwimmingEvent
     public List<TeamState> createNeighbors(int orderIndex) {
         List<TeamState> neighbors = new ArrayList<>();
 
         for (Swimmer swimmer : availableSwimmers) {
-            if (swimmer.canChooseEvent(SwimmingEvent.values()[Competition.order[orderIndex][0]])) {
-                TeamState neighbor = new TeamState(this); // WARNING: FLAT COPY need to be fixed
-                neighbor.swapAthletes(orderIndex, swimmer.getID()); // WARNING: SWIMMER DOESN'T KNOW HE CHOOSE THIS
-                                                                    // EVENT
+            if (swimmer.canChooseOrderIndex(orderIndex)) {
+                TeamState neighbor = new TeamState(this);
+                neighbor.swapAthletes(orderIndex, swimmer.getID());
                 neighbor.totalPoints = neighbor.getTotalPoints();
                 neighbors.add(neighbor);
             }
@@ -183,22 +199,63 @@ public class TeamState {
         StringBuilder sb = new StringBuilder();
         sb.append("Current Lineup:\n");
         int j = 1;
-        for (int i = 0; i < Competition.order.length; i++) {
-            int eventIndex = Competition.order[i][0];
+        for (int i = 0; i < this.order.length; i++) {
+            int eventIndex = this.order[i][0];
             if (eventIndex == -1) {
-                sb.append(String.format("------ BREAK (approx. %d min) ------ %n", Competition.order[i][1]));
+                sb.append(String.format("------ BREAK (approx. %d min) ------ %n", this.order[i][1]));
+                continue;
+            }
+            if (eventIndex == -2) {
+                // sb.append("------ " + (isMale ? "Female" : "Male"));
+                // sb.append(String.format(" Event (approx. %d min ------ %n",
+                // this.order[i][1]));
                 continue;
             }
             Swimmer swimmer = lineUp.get(i);
             String swimmerName = swimmer != null ? swimmer.getName() : "No swimmer assigned";
             String gender = swimmer != null ? (swimmer.isMale() ? " (m)" : " (f)") : "";
             int pointsForEvent = swimmer.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
-            sb.append(String.format("%02d %5s: %-19s%s %04d%n", j,
-                    SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender, pointsForEvent));
+            String breakTime = swimmer.hasBreakBefore(i);
+            sb.append(String.format("%02d %5s: %-19s%s %04d %s%n", j,
+                    SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender, pointsForEvent,
+                    breakTime));
             j++;
         }
         sb.append("Total Points: ").append(getTotalPoints()).append("\n");
         return sb.toString();
+    }
+
+    public String toStringOnly(int ind) {
+        StringBuilder sb = new StringBuilder();
+        // sb.append("Current Lineup:\n");
+        int j = 1;
+        for (int i = 0; i < this.order.length; i++) {
+            if (i == ind - 2 || i == ind || i == ind - 4 || i == ind + 2) {
+                int eventIndex = this.order[i][0];
+                if (eventIndex == -1) {
+                    sb.append(String.format("------ BREAK (approx. %d min) ------ %n", this.order[i][1]));
+                    continue;
+                }
+                if (eventIndex == -2) {
+                    // sb.append("------ " + (isMale ? "Female" : "Male"));
+                    // sb.append(String.format(" Event (approx. %d min ------ %n",
+                    // this.order[i][1]));
+                    continue;
+                }
+                Swimmer swimmer = lineUp.get(i);
+                String swimmerName = swimmer != null ? swimmer.getName() : "No swimmer assigned";
+                String gender = swimmer != null ? (swimmer.isMale() ? " (m)" : " (f)") : "";
+                int pointsForEvent = swimmer.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
+                String breakTime = swimmer.hasBreakBefore(i);
+                sb.append(String.format("%02d %5s: %-19s%s %04d %s%n", j,
+                        SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender, pointsForEvent,
+                        breakTime));
+                j++;
+            }
+        }
+        // sb.append("Total Points: ").append(getTotalPoints()).append("\n");
+        return sb.toString();
+
     }
 
     public String toStringTeamSwimmers() {
