@@ -219,7 +219,7 @@ public class TeamState {
             String swimmerName = swimmer != null ? swimmer.getName() : "No swimmer assigned";
             String gender = swimmer != null ? (swimmer.isMale() ? " (m)" : " (f)") : "";
             int pointsForEvent = swimmer.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
-            String breakTime = swimmer.hasBreakBefore(i);
+            String breakTime = swimmer.toStringBreakBefore(i);
             sb.append(String.format("%02d %5s: %-19s%s %04d %s%n", j,
                     SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender, pointsForEvent,
                     breakTime));
@@ -250,7 +250,7 @@ public class TeamState {
                 String swimmerName = swimmer != null ? swimmer.getName() : "No swimmer assigned";
                 String gender = swimmer != null ? (swimmer.isMale() ? " (m)" : " (f)") : "";
                 int pointsForEvent = swimmer.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
-                String breakTime = swimmer.hasBreakBefore(i);
+                String breakTime = swimmer.toStringBreakBefore(i);
                 sb.append(String.format("%02d %5s: %-19s%s %04d %s%n", j,
                         SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender, pointsForEvent,
                         breakTime));

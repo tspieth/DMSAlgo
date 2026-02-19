@@ -35,9 +35,9 @@ public class Swimmer {
     private int[] points = new int[Competition.eventCount]; // contains points for each event,
     // when there is no points for an event, the value is -1
 
-    // ============================================================= //
-    // Konstruktoren //
-    // ============================================================= //
+    // =============================================================
+    // Konstruktoren
+    // =============================================================
 
     public Swimmer(String name, boolean isMale, int endurance) {
         this.id = nextId++; // assign the current nextId to id and then increment nextId
@@ -72,9 +72,9 @@ public class Swimmer {
 
     }
 
-    // ============================================================= //
-    // Getter //
-    // ============================================================= //
+    // =============================================================
+    // Getter
+    // =============================================================
 
     public int getID() {
         return this.id;
@@ -136,9 +136,9 @@ public class Swimmer {
         return total;
     }
 
-    // ============================================================= //
-    // Setter //
-    // ============================================================= //
+    // =============================================================
+    // Setter
+    // =============================================================
 
     public void setName(String name) {
         this.name = name;
@@ -182,9 +182,9 @@ public class Swimmer {
         this.setTimeForEvent(swimmingEvent, Competition.getTimeFromString(time));
     }
 
-    // ============================================================= //
-    // Methoden (MAYBE BETTER SORTABLE) //
-    // ============================================================= //
+    // =============================================================
+    // choosing of an Event Methodes
+    // =============================================================
 
     /**
      * Choses an event for the swimmer if
@@ -237,29 +237,9 @@ public class Swimmer {
         }
     }
 
-    /**
-     * Checks if the swimmer can choose a specific event
-     * - swimmer has not already chosen the maximum number of events
-     * - event is not already chosen
-     * - event index is valid
-     * 
-     * @param event
-     * @return true if the swimmer can choose the event, false otherwise
-     * @author Timon Spieth
-     * @since 2026-02-11
-     */
-    public boolean canChooseEvent(SwimmingEvent event) {
-        int eventIndex = event.getIndex();
-        if (this.countChoosenEvents >= Competition.maxEventsPerSwimmer) {
-            return false; // swimmer has already chosen the maximum number of events, return false to
-                          // indicate that the event cannot be chosen
-        }
-        if (eventIndex >= 0 && eventIndex < this.choosenEvents.length) {
-            return !this.choosenEvents[eventIndex]; // return true if the event is not already chosen, false otherwise
-        } else {
-            throw new IllegalArgumentException("Invalid event index");
-        }
-    }
+    // =============================================================
+    // Logik for canChoose() Methodes
+    // =============================================================
 
     public boolean canChooseOrderIndex(int orderIndex) {
 
@@ -291,14 +271,31 @@ public class Swimmer {
         }
     }
 
-    // PROBABLY UPDATE NEEDED since UPDATE #17
-    // UPDATE BECAUSE MAYBE CRITICAL FOR MINIMUM BREAK TIMES
-    // IT IS IMPOSSIBLE TO KNOW BEFOREHAND IN WICH HEAT A ATHLETE STARTS WICH MAY BE
-    // CRITICAL FOR BREAK TIMES
+    /**
+     * Checks if the swimmer can choose a specific event
+     * - swimmer has not already chosen the maximum number of events
+     * - event is not already chosen
+     * - event index is valid
+     * 
+     * @param event
+     * @return true if the swimmer can choose the event, false otherwise
+     * @author Timon Spieth
+     */
+    public boolean canChooseEvent(SwimmingEvent event) {
+        int eventIndex = event.getIndex();
+        if (this.countChoosenEvents >= Competition.maxEventsPerSwimmer) {
+            return false; // swimmer has already chosen the maximum number of events, return false to
+                          // indicate that the event cannot be chosen
+        }
+        if (eventIndex >= 0 && eventIndex < this.choosenEvents.length) {
+            return !this.choosenEvents[eventIndex]; // return true if the event is not already chosen, false otherwise
+        } else {
+            throw new IllegalArgumentException("Invalid event index");
+        }
+    }
 
     // For simplicity this methode supposes that the athlete starts in the last heat
-    // of the
-    // last event he compeated in and in the first of the order index
+    // of the last event he compeated in and in the first of the order index
     public boolean hasEnoughBreak(int orderIndex) {
         int currentIndex = orderIndex - 1;
         int currentBreakTime = 0;
@@ -360,33 +357,13 @@ public class Swimmer {
         return true;
     }
 
-    public String hasBreakBefore(int orderIndex) {
-        int currentIndex = orderIndex - 1;
-        int currentBreakTime = 0;
-        int eventIndex = Competition.order[currentIndex][0];
-        for (; currentIndex >= 0; currentIndex--) {
-            eventIndex = Competition.order[currentIndex][0];
-            if (!eventIndices[currentIndex]) {
-
-                if (eventIndex == -1) {
-                    currentBreakTime += Competition.order[currentIndex][1];
-                } else {
-                    currentBreakTime += SwimmingEvent.values()[eventIndex].getTypicalDuration();
-                }
-            } else {
-                break; // last Compeating Event found
-            }
-        }
-        if (currentIndex < 0) {
-            return "Infinity"; // swimmer has no choosen event;
-        }
-        int needed = SwimmingEvent.values()[eventIndex].getMinimumBreakTime();
-        if (currentBreakTime < needed) {
-            return "Pause ist zu Kurz " + currentBreakTime + " " + needed;
-
-        }
-        return Integer.toString(currentBreakTime) + "min";
+    public boolean hasToMuchEvents(int orderIndex) {
+        return false;
     }
+
+    // =============================================================
+    // removeEvent Methodes()
+    // =============================================================
 
     // should only be called from class
     // HELPER METHOD for removeEvent(int orderIndex)
@@ -425,17 +402,16 @@ public class Swimmer {
         }
     }
 
+    // =============================================================
+    // Utility Methodes Updates/Resets/HashSet...
+    // =============================================================
+
     public void updatePoints() {
         for (int i = 0; i < times.length; i++) {
             if (times[i] != -1) { // only update points for events that have a defined time
                 setPointsForEvent(SwimmingEvent.values()[i], times[i]);
             }
         }
-    }
-
-    public void resetChoosenEvents() {
-        Arrays.fill(eventIndices, false);
-        Arrays.fill(choosenEvents, false);
     }
 
     public boolean equals(Object obj) {
@@ -450,6 +426,10 @@ public class Swimmer {
     public int hashCode() {
         return Integer.hashCode(id); // hash code is based on the unique ID of the swimmer
     }
+
+    // =============================================================
+    // toString() Methodes
+    // =============================================================
 
     public String toString() {
 
@@ -470,5 +450,33 @@ public class Swimmer {
 
         return "Name: " + name + ", Geschlecht: " + (isMale ? "maennlich" : "weiblich") + "\n" + sb.toString();
 
+    }
+
+    public String toStringBreakBefore(int orderIndex) {
+        int currentIndex = orderIndex - 1;
+        int currentBreakTime = 0;
+        int eventIndex = Competition.order[currentIndex][0];
+        for (; currentIndex >= 0; currentIndex--) {
+            eventIndex = Competition.order[currentIndex][0];
+            if (!eventIndices[currentIndex]) {
+
+                if (eventIndex == -1) {
+                    currentBreakTime += Competition.order[currentIndex][1];
+                } else {
+                    currentBreakTime += SwimmingEvent.values()[eventIndex].getTypicalDuration();
+                }
+            } else {
+                break; // last Compeating Event found
+            }
+        }
+        if (currentIndex < 0) {
+            return "Infinity"; // swimmer has no choosen event;
+        }
+        int needed = SwimmingEvent.values()[eventIndex].getMinimumBreakTime();
+        if (currentBreakTime < needed) {
+            return "Pause ist zu Kurz " + currentBreakTime + " " + needed;
+
+        }
+        return Integer.toString(currentBreakTime) + "min";
     }
 }
