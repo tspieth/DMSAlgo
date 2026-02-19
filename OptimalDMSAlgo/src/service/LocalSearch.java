@@ -86,7 +86,7 @@ public class LocalSearch {
 
         for (int i = 0; i < k; i++) {
 
-            List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/betterClub.csv");
+            List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
 
             SwimmingClub club = new SwimmingClub(schwimmerListe);
 

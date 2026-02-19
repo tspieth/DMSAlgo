@@ -37,6 +37,7 @@ public class TeamState {
         this.order = isMale ? Competition.orderMale : Competition.orderFemale;
 
         this.lineUp = generateRandomLineUp();
+
         // this.totalPoints = getTotalPoints();
     }
 

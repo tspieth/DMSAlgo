@@ -126,6 +126,11 @@ public class CSVReader {
                 }
 
                 // Strecke + Zeit hinzufügen
+
+                if (row.length < 6 && aktuellerSchwimmer != null && row[4] != null && !row[4].isEmpty()) {
+                    aktuellerSchwimmer.setTimeForEvent(row[4], "-1");
+                    continue;
+                }
                 if (aktuellerSchwimmer != null && row[4] != null && !row[4].isEmpty()) {
                     aktuellerSchwimmer.setTimeForEvent(row[4], row[5]);
                     // aktuellerSchwimmer.setPointsForEvent(row[4], row[5]);

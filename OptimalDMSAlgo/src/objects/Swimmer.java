@@ -20,10 +20,12 @@ import java.util.Arrays;
 
 public class Swimmer {
     public static int nextId = 1; // static variable to keep track of the next available ID
+
     public int id;
     private String name;
     private int endurance; // endurance level of the swimmer, determines how long breaks have to be between
                            // events
+    private int maxSectionEvents = 3;
     private int totalPoints;
     private boolean isMale;
     private int countChoosenEvents = 0; // keeps track of how many events the swimmer has chosen
@@ -262,7 +264,8 @@ public class Swimmer {
         }
 
         if (canChooseEvent(event)) {
-            if (hasEnoughBreak(orderIndex) && hasEnoughBreakAfter(orderIndex)) {
+            if (hasEnoughBreak(orderIndex) && hasEnoughBreakAfter(orderIndex)
+                    && !hasToMuchEvents(orderIndex, this.maxSectionEvents)) {
                 return true;
             }
             return false;
@@ -357,8 +360,27 @@ public class Swimmer {
         return true;
     }
 
-    public boolean hasToMuchEvents(int orderIndex) {
-        return false;
+    public boolean hasToMuchEvents(int orderIndex, int maxEvents) {
+        int[][] order = Competition.order; // to reduce IO
+        int countEvents = 0;
+
+        for (int i = 0; i < order.length; i++) {
+
+            // Break reached
+            if (order[i][0] == Competition.BREAK_MARKER && order[i][1] == Competition.BREAK_CODE) {
+
+                if (orderIndex < i) { // to Put event was in the last Abschnitt
+                    return (countEvents > maxEvents);
+                } else { // to Put event was not in the last Abschnitt
+                    countEvents = 0;
+                    continue;
+                }
+            }
+            if (eventIndices[i]) {
+                countEvents++;
+            }
+        }
+        return (countEvents > maxEvents); // Should work??
     }
 
     // =============================================================

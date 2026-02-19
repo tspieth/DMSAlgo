@@ -11,6 +11,8 @@ public class Competition {
      * 4 - Bezirksliga
      * 
      */
+    public static final int BREAK_MARKER = -1;
+    public static final int BREAK_CODE = 60;
 
     public static int eventCount = SwimmingEvent.values().length; // total number of events in the competition
 
