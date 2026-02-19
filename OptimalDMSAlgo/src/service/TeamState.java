@@ -22,7 +22,9 @@ public class TeamState {
 
     // Maybe little bit complicated to have teamSwimmers and lineUp
     // teamSwimmer is mainly for calculating the total points of the team
-    private List<Swimmer> teamSwimmers; // list of swimmers that are currently in the team
+    // deprecated!!!!!!!!!!!!!!!!!
+    // private List<Swimmer> teamSwimmers; // list of swimmers that are currently in
+    // the team
 
     private Map<Integer, Swimmer> lineUp; // maps each Competition eventIndex to the swimmer that is currently assigned
 
@@ -35,8 +37,7 @@ public class TeamState {
         this.order = isMale ? Competition.orderMale : Competition.orderFemale;
 
         this.lineUp = generateRandomLineUp();
-        this.totalPoints = getTotalPoints();
-
+        // this.totalPoints = getTotalPoints();
     }
 
     public TeamState(TeamState other) {
@@ -57,12 +58,6 @@ public class TeamState {
         this.availableSwimmers = new ArrayList<>();
         for (Swimmer s : other.availableSwimmers) {
             this.availableSwimmers.add(copySwimmer.apply(s));
-        }
-
-        // teamSwimmers
-        this.teamSwimmers = new ArrayList<>();
-        for (Swimmer s : other.teamSwimmers) {
-            this.teamSwimmers.add(copySwimmer.apply(s));
         }
 
         // lineUp
@@ -101,13 +96,11 @@ public class TeamState {
                 System.out.println("Es konnte kein Linup gebildet werden.");
                 return null;
             }
-
+            if (randomSwimmer != null) {
+                totalPoints += randomSwimmer.getPointsForOrderIndex(i);
+            }
             lineUp.put(i, randomSwimmer);
         }
-        this.teamSwimmers = lineUp.values().stream()
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
         return lineUp;
     }
 
@@ -115,7 +108,8 @@ public class TeamState {
         this.lineUp = this.generateRandomLineUp();
     }
 
-    public Swimmer getRandomSwimmerForEvent(SwimmingEvent event, int orderIndex) {
+    // helper Method for getRandomSwimmerForEvent(int orderIndex)
+    private Swimmer getRandomSwimmerForEvent(SwimmingEvent event, int orderIndex) {
         List<Swimmer> valid = leaderboards.get(event).stream()
                 .filter(s -> s.canChooseOrderIndex(orderIndex))
                 .toList();
@@ -153,6 +147,10 @@ public class TeamState {
         return total;
     }
 
+    public int getTotalPointsFast() {
+        return this.totalPoints;
+    }
+
     public List<TeamState> createAllNeighbors() {
         List<TeamState> neighbors = new ArrayList<TeamState>();
         for (int i = 0; i < this.order.length; i++) {
@@ -172,7 +170,6 @@ public class TeamState {
             if (swimmer.canChooseOrderIndex(orderIndex)) {
                 TeamState neighbor = new TeamState(this);
                 neighbor.swapAthletes(orderIndex, swimmer.getID());
-                neighbor.totalPoints = neighbor.getTotalPoints();
                 neighbors.add(neighbor);
             }
         }
@@ -183,8 +180,10 @@ public class TeamState {
     // athletes
     // O(1) could be reachable
     public void swapAthletes(int orderIndex, int athleteID) {
+        SwimmingEvent event = SwimmingEvent.values()[Competition.order[orderIndex][0]];
         Swimmer original = lineUp.get(Integer.valueOf(orderIndex));
         original.removeEvent(orderIndex);
+        this.totalPoints -= original.getPointsForEvent(event);
 
         Swimmer athlete = null;
         for (Swimmer s : this.availableSwimmers) {
@@ -195,6 +194,7 @@ public class TeamState {
         if (athlete != null) {
             lineUp.put(orderIndex, athlete);
             athlete.chooseEvent(orderIndex);
+            this.totalPoints += athlete.getPointsForEvent(event);
         }
 
     }
@@ -225,7 +225,7 @@ public class TeamState {
                     breakTime));
             j++;
         }
-        sb.append("Total Points: ").append(getTotalPoints()).append("\n");
+        sb.append("Total Points: ").append(getTotalPointsFast()).append("\n");
         return sb.toString();
     }
 
@@ -278,7 +278,7 @@ public class TeamState {
     public static TeamState getBestState(List<TeamState> states) {
         TeamState bestState = states.getFirst();
         for (TeamState s : states) {
-            if (s.getTotalPoints() > bestState.getTotalPoints()) {
+            if (s.getTotalPointsFast() > bestState.getTotalPointsFast()) {
                 bestState = s;
             }
         }

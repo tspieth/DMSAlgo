@@ -24,6 +24,7 @@ public class Swimmer {
     private String name;
     private int endurance; // endurance level of the swimmer, determines how long breaks have to be between
                            // events
+    private int totalPoints;
     private boolean isMale;
     private int countChoosenEvents = 0; // keeps track of how many events the swimmer has chosen
     private boolean[] eventIndices = new boolean[Competition.order.length]; // used to calculate brektimes between
@@ -44,6 +45,7 @@ public class Swimmer {
         this.name = name;
         this.endurance = endurance;
         this.isMale = isMale;
+        this.totalPoints = 0;
 
         Arrays.fill(eventIndices, false);
         Arrays.fill(choosenEvents, false); // initialize all events as not chosen
@@ -117,6 +119,11 @@ public class Swimmer {
         } else {
             throw new IllegalArgumentException("Invalid event index");
         }
+    }
+
+    public int getPointsForOrderIndex(int orderIndex) {
+        int eventIndex = Competition.order[orderIndex][0];
+        return this.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
     }
 
     public int getTotalPoints() { // method to calculate total points across all choosen events

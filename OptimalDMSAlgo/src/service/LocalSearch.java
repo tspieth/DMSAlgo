@@ -16,7 +16,7 @@ public class LocalSearch {
         while (true) {
             List<TeamState> neighbors = currentState.createAllNeighbors();
             TeamState bestNeighbor = TeamState.getBestState(neighbors);
-            if (bestNeighbor.getTotalPoints() <= currentState.getTotalPoints()) {
+            if (bestNeighbor.getTotalPointsFast() <= currentState.getTotalPointsFast()) {
                 break;
             }
             currentState = bestNeighbor;
@@ -29,17 +29,21 @@ public class LocalSearch {
 
         TeamState currentState = current;
 
+        int durchlauf = 0;
         while (true) {
+            durchlauf += 1;
             List<TeamState> neighbors = currentState.createAllNeighbors();
             TeamState bestNeighbor = TeamState.getBestState(neighbors);
-            if (bestNeighbor.getTotalPoints() <= currentState.getTotalPoints()) {
+            if (bestNeighbor.getTotalPointsFast() < currentState.getTotalPointsFast()) {
                 break;
             }
-            // System.out.println(currentState.getTotalPoints());
+            // System.out.println("Fast: " + currentState.getTotalPointsFast());
+            // System.out.println("Slow: " + currentState.getTotalPoints());
             currentState = bestNeighbor;
         }
+        System.out.println(currentState.toStringTeamSwimmers());
         System.out.println(currentState.toStringLineUp());
-        // System.out.println(currentState.getTotalPoints());
+        System.out.println("Insgesamt: " + durchlauf + " Durchlaeufe");
         return currentState;
     }
 

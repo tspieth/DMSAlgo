@@ -43,8 +43,20 @@ public class App {
         System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());
         System.out.println(teamState.toStringTeamSwimmers());
         System.out.println(teamState.toStringLineUp());
+
+        long start = System.nanoTime();
+
+        TeamState best = LocalSearch.hillClimbingWithKStarts(10);
+
+        long end = System.nanoTime();
+
         System.out.println("Punkte nach HillClimb " +
-                LocalSearch.hillClimbingWithKStarts(200).getTotalPoints());
+                best.getTotalPointsFast());
+
+        double seconds = (end - start) / 1_000_000_000.0;
+
+        System.out.println("Dauer: " + seconds + " s");
+
     }
 
 }
