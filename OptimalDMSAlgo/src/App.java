@@ -46,12 +46,12 @@ public class App {
 
         long start = System.nanoTime();
 
-        TeamState best = LocalSearch.hillClimbingWithKStarts(10);
+        TeamState best = LocalSearch.hillClimbingWithKStarts(100);
 
         long end = System.nanoTime();
 
-        System.out.println("Punkte nach HillClimb " +
-                best.getTotalPointsFast());
+        System.out.println(best.toStringTeamSwimmers());
+        System.out.println(best.toStringLineUp());
 
         double seconds = (end - start) / 1_000_000_000.0;
 

@@ -12,43 +12,37 @@ public class Competition {
      * 
      */
 
-    /*
-     * Event index mapping:
-     * 0 - 50m freestyle
-     * 1 - 100m freestyle
-     * 2 - 200m freestyle
-     * 3 - 400m freestyle
-     * 4 - 800m freestyle
-     * 5 - 1500m freestyle
-     * 6 - 50m backstroke
-     * 7 - 100m backstroke
-     * 8 - 200m backstroke
-     * 9 - 50m breaststroke
-     * 10 - 100m breaststroke
-     * 11 - 200m breaststroke
-     * 12 - 50m butterfly
-     * 13 - 100m butterfly
-     * 14 - 200m butterfly
-     * 15 - 100m individual medley
-     * 16 - 200m individual medley
-     * 17 - 400m individual medley
-     */
-
     public static int eventCount = SwimmingEvent.values().length; // total number of events in the competition
+
     public static double[] baseTimesMale; // contains the base times for each event, used to calculate points
     public static double[] baseTimesFemale; // contains the base times for each event, used to calculate points
-    public static int league;
-    public static int maxEventsPerSwimmer = 5; // maximum number of events a swimmer can choose
-    public static int[][] order;
-    public static int[][] orderMale; // orders events by time, the first eventIndex in the order is the one that
-    // takes place first, and so on
-    // order[i][0] gives eventIndex
-    // order[i][1] gives the approximate time the event takes
-    // if there is a break order[i][0] is -1 and order[i][1] is the duration of the
-    // break
-    // NOTE: every event needs to be included 4times (except 800F/1500F)
-    public static int[][] orderFemale;
+    public static int league; // Maybe used to determine typicalDuration of Events and Breaks
 
+    public static int maxEventsPerSwimmer = 5; // maximum number of events a swimmer can choose
+
+    public static int[][] order; // orders events by time, the first eventIndex in the order is the one that
+                                 // takes place first, and so on
+                                 // order[i][0] gives eventIndex
+                                 // order[i][1] gives the approximate time the event takes
+                                 // if there is a break order[i][0] is -1 and
+                                 // order[i][1] is the duration of the break
+
+    public static int[][] orderMale; // same but orderMale[i][0] gives -2 if there is a female event
+                                     // in this case orderMale[i][1] gives the duration of the event
+    public static int[][] orderFemale; // same but orderMale[i][0] gives -2 if there is a female event
+                                       // in this case orderMale[i][1] gives the duration of the event
+
+    /**
+     * Diese Methode Berechnet die Punkte basierend auf den BaseTimes
+     * 
+     * Damit die Berechnung korrekt ist muss baseTimesMale[]/baseTimesFemale
+     * mit den korrekten Zeiten initialisiert sein
+     * 
+     * @param event  das Event
+     * @param time   die Zeit vom Sportler in Sekunden
+     * @param isMale true, wenn der Sportler maennlich ist
+     * @return die berechneten Punkte
+     */
     public static int calculatePoints(SwimmingEvent event, double time, boolean isMale) {
         // calculates points for a given event and time using the formula:
         // points = (baseTime / time) * 1000
@@ -57,6 +51,10 @@ public class Competition {
         double baseTime = isMale ? baseTimesMale[eventIndex] : baseTimesFemale[eventIndex];
         return (int) (Math.pow(baseTime / time, 3) * 1000); // points are truncated to an integer
     }
+
+    // ================================================
+    // Setter
+    // ================================================
 
     public static boolean setBaseTimesMale(double[] baseTimes) {
         if (baseTimes.length != eventCount) {
@@ -86,6 +84,32 @@ public class Competition {
         }
     }
 
+    // ================================================
+    // Getter
+    // ================================================
+
+    public static double getTimeFromString(String timeString) {
+        // converts a time string in the format "mm:ss.SS" or "ss.SS" to a double
+        // representing the time in seconds
+        String[] parts = timeString.split(":");
+        double time = 0;
+        if (parts.length == 2) {
+            time += Integer.parseInt(parts[0]) * 60; // minutes to seconds
+            time += Double.parseDouble(parts[1]); // seconds
+        } else if (parts.length == 1) {
+            time += Double.parseDouble(parts[0]); // seconds only
+        } else if (parts.length == 0) {
+            time = -1; // -1 indicates no time was provided
+        } else {
+            throw new IllegalArgumentException("Invalid time format: " + timeString);
+        }
+        return time;
+    }
+
+    // ================================================
+    // toString() Methodes
+    // ================================================
+
     /**
      * Prints the Event Order
      * Attention: eventOrderMale/eventOrderFemale have a different Typ
@@ -113,6 +137,15 @@ public class Competition {
         return sb.toString();
     }
 
+    /**
+     * Returns the BaseTimes for a given Gender formatted as a String
+     * 
+     * Attention: BaseTimes for the Gender should be initialized
+     * 
+     * @param isMale true if baseTimesMale[] is wanted
+     * @return eventOrder as String
+     * @author Timon Spieth
+     */
     public static String toStringBaseTimes(boolean isMale) {
         double[] baseTimes = isMale ? baseTimesMale : baseTimesFemale;
         StringBuilder sb = new StringBuilder();
@@ -129,24 +162,6 @@ public class Competition {
         }
 
         return sb.toString();
-    }
-
-    public static double getTimeFromString(String timeString) {
-        // converts a time string in the format "mm:ss.SS" or "ss.SS" to a double
-        // representing the time in seconds
-        String[] parts = timeString.split(":");
-        double time = 0;
-        if (parts.length == 2) {
-            time += Integer.parseInt(parts[0]) * 60; // minutes to seconds
-            time += Double.parseDouble(parts[1]); // seconds
-        } else if (parts.length == 1) {
-            time += Double.parseDouble(parts[0]); // seconds only
-        } else if (parts.length == 0) {
-            time = -1; // -1 indicates no time was provided
-        } else {
-            throw new IllegalArgumentException("Invalid time format: " + timeString);
-        }
-        return time;
     }
 
 }
