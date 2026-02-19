@@ -14,7 +14,9 @@ public class LocalSearch {
         TeamState currentState = new TeamState(club, isMale); // initialize current state with the given club
 
         while (true) {
+            long start = System.nanoTime();
             List<TeamState> neighbors = currentState.createAllNeighbors();
+            long end = System.nanoTime();
             TeamState bestNeighbor = TeamState.getBestState(neighbors);
             if (bestNeighbor.getTotalPointsFast() <= currentState.getTotalPointsFast()) {
                 break;
@@ -32,9 +34,23 @@ public class LocalSearch {
         int durchlauf = 0;
         while (true) {
             durchlauf += 1;
+
+            long start = System.nanoTime();
             List<TeamState> neighbors = currentState.createAllNeighbors();
+            long end = System.nanoTime();
+            double seconds = (end - start) / 1_000_000_000.0;
+
+            // System.out.println("Dauer Nachbarberechnung: " + seconds + " s");
+
+            start = System.nanoTime();
             TeamState bestNeighbor = TeamState.getBestState(neighbors);
-            if (bestNeighbor.getTotalPointsFast() < currentState.getTotalPointsFast()) {
+            end = System.nanoTime();
+
+            seconds = (end - start) / 1_000_000_000.0;
+
+            // System.out.println("Dauer Bestensuche: " + seconds + " s");
+
+            if (bestNeighbor.getTotalPointsFast() <= currentState.getTotalPointsFast()) {
                 break;
             }
             // System.out.println("Fast: " + currentState.getTotalPointsFast());
@@ -83,7 +99,15 @@ public class LocalSearch {
 
             TeamState teamState = new TeamState(club, true);
 
+            long start = System.nanoTime();
+
             allBest.add(hillClimbing(teamState));
+
+            long end = System.nanoTime();
+
+            double seconds = (end - start) / 1_000_000_000.0;
+
+            System.out.println("Dauer HillClimb: " + seconds + " s");
 
         }
         TeamState best = allBest.get(0);
