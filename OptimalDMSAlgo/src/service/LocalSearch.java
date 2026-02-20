@@ -84,20 +84,21 @@ public class LocalSearch {
     public static TeamState hillClimbingWithKStarts(int k) {
         List<TeamState> allBest = new ArrayList<TeamState>();
 
+        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
+
+        SwimmingClub club = new SwimmingClub(schwimmerListe);
+
+        for (Swimmer schwimmer : club.getAllSwimmer()) {
+            schwimmer.updatePoints(); // update points for each swimmer based on their times
+        }
+
+        club.generateLeaderboards();
+
         for (int i = 0; i < k; i++) {
-
-            List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
-
-            SwimmingClub club = new SwimmingClub(schwimmerListe);
-
-            for (Swimmer schwimmer : club.getAllSwimmer()) {
-                schwimmer.updatePoints(); // update points for each swimmer based on their times
-            }
-            club.generateLeaderboards();
-            // System.out.println(club.toStringLeaderboards(5, true));
-            // System.out.println(club.toStringLeaderboards(5, false));
-
-            TeamState teamState = new TeamState(club, true);
+            TeamState teamState;
+            do {
+                teamState = new TeamState(club, true);
+            } while (teamState.lineUp == null);
 
             long start = System.nanoTime();
 
@@ -119,4 +120,5 @@ public class LocalSearch {
         }
         return best;
     }
+
 }

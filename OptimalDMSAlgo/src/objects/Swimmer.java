@@ -436,6 +436,12 @@ public class Swimmer {
         }
     }
 
+    public void resetEvents() {
+        countChoosenEvents = 0;
+        Arrays.fill(this.eventIndices, false);
+        Arrays.fill(this.choosenEvents, false);
+    }
+
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
