@@ -3,8 +3,6 @@ package service;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.CSVReader;
-import objects.Swimmer;
 import objects.SwimmingClub;
 
 public class LocalSearch {

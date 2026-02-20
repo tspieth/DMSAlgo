@@ -46,7 +46,7 @@ public class App {
 
         long start = System.nanoTime();
 
-        TeamState best = LocalSearch.hillClimbingWithKStarts(teamState, 10);
+        TeamState best = LocalSearch.hillClimbingWithKStarts(teamState, 2);
         // TeamState best = LocalSearch.hillClimbing(teamState);
         long end = System.nanoTime();
 

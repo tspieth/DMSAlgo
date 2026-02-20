@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
+import experiments.ExperimentLocalSearch;
 import objects.Competition;
 import objects.Swimmer;
 import objects.SwimmingClub;
@@ -218,7 +219,7 @@ public class TeamState {
         if (valid.isEmpty())
             return null;
 
-        int randomIndex = (int) (Math.random() * valid.size());
+        int randomIndex = ExperimentLocalSearch.rng.nextInt(valid.size());
         Swimmer randomSwimmer = valid.get(randomIndex);
         randomSwimmer.chooseEvent(orderIndex);
         return randomSwimmer;
