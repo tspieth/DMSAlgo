@@ -17,39 +17,67 @@ public class TeamState {
 
     private boolean isMale;
     private int totalPoints = 0; // total points of the current team state
+    private int[][] order; // safes Copy for GenderSpecific order from Competition
+
+    // Probably only lineUp and availableSwimmers is really needed
+    // Eventually relevant for efficiency
+
     private List<Swimmer> availableSwimmers; // list of swimmers that are currently available
-    private int[][] order; // selects Copy for GenderSpecific order from Competition
 
-    // Maybe little bit complicated to have teamSwimmers and lineUp
-    // teamSwimmer is mainly for calculating the total points of the team
-    // deprecated!!!!!!!!!!!!!!!!!
-    // private List<Swimmer> teamSwimmers; // list of swimmers that are currently in
-    // the team
+    private Map<Integer, Swimmer> lineUp; // maps each Competition eventIndex to the swimmer that is currently assigned
 
-    public Map<Integer, Swimmer> lineUp; // maps each Competition eventIndex to the swimmer that is currently assigned
+    private Map<SwimmingEvent, List<Swimmer>> leaderboards; // leaderboard for every event
 
-    private final Map<SwimmingEvent, List<Swimmer>> leaderboards; // leaderboard for every event doesn't change
+    // =============================================================
+    // Konstruktoren
+    // =============================================================
 
+    /**
+     * Generiert einen TeamState für das gegebene Geschlecht aus einem gegebenen
+     * Club
+     * 
+     * Die Listen und Maps des erzeugten States enthalten nur Kopien aus den
+     * Athleten des Clubs
+     * 
+     * @param club
+     * @param isMale
+     */
     public TeamState(SwimmingClub club, boolean isMale) {
+
+        this.isMale = isMale;
+        this.order = isMale ? Competition.orderMale : Competition.orderFemale;
+
+        // **************************
+        // Logik for Copies
+        // **************************
+
         // Map original -> copy
         Map<Swimmer, Swimmer> copies = new HashMap<>();
 
-        // helper function (inline)
+        // Helper function (inline)
         Function<Swimmer, Swimmer> copySwimmer = s -> {
             return copies.computeIfAbsent(s, k -> new Swimmer(k));
         };
 
-        List<Swimmer> temp = club.getAllSwimmer().stream().filter(swimmer -> swimmer.isMale() == isMale).toList();
+        // **************************
+        // Getting Lists to Copy from
+        // **************************
+
+        List<Swimmer> tempAvailable = club.getAllSwimmer().stream().filter(swimmer -> swimmer.isMale() == isMale)
+                .toList();
+        Map<SwimmingEvent, List<Swimmer>> tempLead = club.getLeaderboards(isMale);
+
+        // **************************
+        // Filling Structures
+        // **************************
 
         this.availableSwimmers = new ArrayList<>();
-        for (Swimmer s : temp) {
+        for (Swimmer s : tempAvailable) {
             this.availableSwimmers.add(copySwimmer.apply(s));
         }
 
-        Map<SwimmingEvent, List<Swimmer>> lead = club.getLeaderboards(isMale);
-
         this.leaderboards = new HashMap<>();
-        for (Map.Entry<SwimmingEvent, List<Swimmer>> e : lead.entrySet()) {
+        for (Map.Entry<SwimmingEvent, List<Swimmer>> e : tempLead.entrySet()) {
 
             List<Swimmer> listCopy = new ArrayList<>();
             for (Swimmer s : e.getValue()) {
@@ -59,19 +87,22 @@ public class TeamState {
             this.leaderboards.put(e.getKey(), listCopy);
         }
 
-        this.isMale = isMale;
-        this.order = isMale ? Competition.orderMale : Competition.orderFemale;
+        // **************************
+        // Generating Random LineUp
+        // **************************
 
-        this.lineUp = generateRandomLineUp();
-
-        while (lineUp == null) {
-            this.resetTeamState();
-            newRandomLineUp();
+        if (!newRandomLineUp()) {
+            System.out.println("ERROR RANDOM LINUP NOT FOUND IN 1000 TRYS");
         }
-
-        // this.totalPoints = getTotalPoints();
     }
 
+    /**
+     * Erzeugt eine Tiefere Kopie des uebergebenen TeamStates.
+     * 
+     * Kann zum Generieren von Nachbarn verwendet werden.
+     * 
+     * @param other
+     */
     public TeamState(TeamState other) {
 
         this.totalPoints = other.totalPoints;
@@ -114,30 +145,18 @@ public class TeamState {
         }
     }
 
-    // MUST ADD FUNCTION THAT ABBORTS TEAM STATE IF THERE IS NO POSSIBLE RANDOM
-    // LINEUP
-    // MUST ENSURE THAT IF THERE IS MIN 1 RANDOM LINUP THAT THIS LINEUP IS FOUND
-    private Map<Integer, Swimmer> generateRandomLineUp() {
-        Map<Integer, Swimmer> lineUp = new HashMap<>();
-        this.totalPoints = 0; // Reset points for new lineup
+    // =============================================================
+    // RandomLinupGenerator
+    // =============================================================
 
-        for (int i = 0; i < this.order.length; i++) {
-            Swimmer randomSwimmer = getRandomSwimmerForCompetition(i);
-
-            if ((randomSwimmer == null && order[i][0] != -1) &&
-                    order[i][0] != -2) {
-                System.out.println("Es konnte kein Linup gebildet werden.");
-                return null;
-            }
-            if (randomSwimmer != null) {
-                totalPoints += randomSwimmer.getPointsForOrderIndex(i);
-            }
-            lineUp.put(i, randomSwimmer);
-        }
-        return lineUp;
-    }
-
-    public void newRandomLineUp() {
+    /**
+     * Generiert ein Zufälliges LineUp und ordnet es this.lineUp zu
+     * 
+     * Abbruchbedingung kann verbessert werden
+     * 
+     * @return true, wenn ein LinUp innerhalb 1000 Trys gefunden wurde, false sonst
+     */
+    public boolean newRandomLineUp() {
         int maxAttempts = 1000;
         int attempts = 0;
 
@@ -150,10 +169,47 @@ public class TeamState {
 
         if (this.lineUp == null) {
             System.out.println("Failed to generate a valid lineup after " + maxAttempts + " attempts.");
+            return false;
         }
+        return true;
     }
 
-    // helper Method for getRandomSwimmerForEvent(int orderIndex)
+    // Helper Method for newRandomLineUp()
+    private Map<Integer, Swimmer> generateRandomLineUp() {
+        Map<Integer, Swimmer> lineUp = new HashMap<>();
+        this.totalPoints = 0; // Reset points for new lineup
+
+        for (int i = 0; i < this.order.length; i++) {
+            Swimmer randomSwimmer = getRandomSwimmerForCompetition(i);
+
+            if ((randomSwimmer == null && order[i][0] != -1) &&
+                    order[i][0] != -2) {
+                // System.out.println("Es konnte kein Linup gebildet werden.");
+                return null;
+            }
+            if (randomSwimmer != null) {
+                totalPoints += randomSwimmer.getPointsForOrderIndex(i);
+            }
+            lineUp.put(i, randomSwimmer);
+        }
+        return lineUp;
+    }
+
+    // Gets RandomSwimmer for orderIndex if exists, else null is returned
+    public Swimmer getRandomSwimmerForCompetition(int orderIndex) {
+
+        int eventIndex = this.order[orderIndex][0];
+
+        if (eventIndex == -1) {
+            return null; // if there is a break, return null
+        }
+        if (eventIndex == -2) {
+            return null; // if the event is for the other gender
+        }
+        return getRandomSwimmerForEvent(SwimmingEvent.values()[eventIndex], orderIndex);
+    }
+
+    // Helper Method for getRandomSwimmerForEvent(int orderIndex)
     private Swimmer getRandomSwimmerForEvent(SwimmingEvent event, int orderIndex) {
         List<Swimmer> valid = leaderboards.get(event).stream()
                 .filter(s -> s.canChooseOrderIndex(orderIndex))
@@ -168,47 +224,25 @@ public class TeamState {
         return randomSwimmer;
     }
 
-    public Swimmer getRandomSwimmerForCompetition(int orderIndex) {
+    // =============================================================
+    // Neighbor Creator Methodes
+    // =============================================================
 
-        int eventIndex = this.order[orderIndex][0];
-
-        if (eventIndex == -1) {
-            return null; // if there is a break, return null
-        }
-        if (eventIndex == -2) {
-            return null; // if the event is for the other gender
-        }
-        return getRandomSwimmerForEvent(SwimmingEvent.values()[eventIndex], orderIndex);
-    }
-
-    public int getTotalPoints() {
-        int total = 0;
-        for (Swimmer swimmer : lineUp.values().stream()
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList()) {
-            total += swimmer.getTotalPoints(); // adds the total points of each swimmer to the total
-        }
-        return total;
-    }
-
-    public int getTotalPointsFast() {
-        return this.totalPoints;
-    }
-
+    // Creates All Neighbors
     public List<TeamState> createAllNeighbors() {
         List<TeamState> neighbors = new ArrayList<TeamState>();
         for (int i = 0; i < this.order.length; i++) {
             if (this.order[i][0] == -1 || this.order[i][0] == -2) {
                 continue; // No neighbor for breaks needed
             }
-            neighbors.addAll(createNeighbors(i));
+            neighbors.addAll(createNeighborsForIndex(i));
         }
         return neighbors;
     }
 
-    // eventIndex should be a available EVENT in class SwimmingEvent
-    public List<TeamState> createNeighbors(int orderIndex) {
+    // creates All Neighbors of a specific order Index
+    // eventIndex should be an available EVENT in class SwimmingEvent
+    public List<TeamState> createNeighborsForIndex(int orderIndex) {
         List<TeamState> neighbors = new ArrayList<>();
 
         for (Swimmer swimmer : availableSwimmers) {
@@ -244,12 +278,49 @@ public class TeamState {
 
     }
 
+    // =============================================================
+    // Getter Methodes
+    // =============================================================
+
+    public int getTotalPoints() {
+        int total = 0;
+        for (Swimmer swimmer : lineUp.values().stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList()) {
+            total += swimmer.getTotalPoints(); // adds the total points of each swimmer to the total
+        }
+        return total;
+    }
+
+    public int getTotalPointsFast() {
+        return this.totalPoints;
+    }
+
+    public static TeamState getBestState(List<TeamState> states) {
+        TeamState bestState = states.getFirst();
+        for (TeamState s : states) {
+            if (s.getTotalPointsFast() > bestState.getTotalPointsFast()) {
+                bestState = s;
+            }
+        }
+        return bestState;
+    }
+
+    // =============================================================
+    // Setter Methodes
+    // =============================================================
+
     public void resetTeamState() {
         this.totalPoints = 0;
         for (Swimmer swimmer : this.availableSwimmers) {
             swimmer.resetEvents();
         }
     }
+
+    // =============================================================
+    // toString() Methodes
+    // =============================================================
 
     public String toStringLineUp() {
         StringBuilder sb = new StringBuilder();
@@ -325,16 +396,6 @@ public class TeamState {
 
         }
         return sb.toString();
-    }
-
-    public static TeamState getBestState(List<TeamState> states) {
-        TeamState bestState = states.getFirst();
-        for (TeamState s : states) {
-            if (s.getTotalPointsFast() > bestState.getTotalPointsFast()) {
-                bestState = s;
-            }
-        }
-        return bestState;
     }
 
 }

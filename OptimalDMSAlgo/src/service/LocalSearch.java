@@ -37,6 +37,9 @@ public class LocalSearch {
 
             long start = System.nanoTime();
             List<TeamState> neighbors = currentState.createAllNeighbors();
+
+            System.out.println("Erzeugte Nachbarn: " + neighbors.size());
+
             long end = System.nanoTime();
             double seconds = (end - start) / 1_000_000_000.0;
 
@@ -81,44 +84,49 @@ public class LocalSearch {
         return best;
     }
 
-    public static TeamState hillClimbingWithKStarts(int k) {
-        List<TeamState> allBest = new ArrayList<TeamState>();
-
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
-
-        SwimmingClub club = new SwimmingClub(schwimmerListe);
-
-        for (Swimmer schwimmer : club.getAllSwimmer()) {
-            schwimmer.updatePoints(); // update points for each swimmer based on their times
-        }
-
-        club.generateLeaderboards();
-
-        for (int i = 0; i < k; i++) {
-            TeamState teamState;
-            do {
-                teamState = new TeamState(club, true);
-            } while (teamState.lineUp == null);
-
-            long start = System.nanoTime();
-
-            allBest.add(hillClimbing(teamState));
-
-            long end = System.nanoTime();
-
-            double seconds = (end - start) / 1_000_000_000.0;
-
-            System.out.println("Dauer HillClimb: " + seconds + " s");
-
-        }
-        TeamState best = allBest.get(0);
-
-        for (TeamState state : allBest) {
-            if (state.getTotalPoints() > best.getTotalPoints()) {
-                best = state;
-            }
-        }
-        return best;
-    }
+    /*
+     * DEPRECATED
+     * public static TeamState hillClimbingWithKStarts(int k) {
+     * List<TeamState> allBest = new ArrayList<TeamState>();
+     * 
+     * List<Swimmer> schwimmerListe =
+     * CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
+     * 
+     * SwimmingClub club = new SwimmingClub(schwimmerListe);
+     * 
+     * for (Swimmer schwimmer : club.getAllSwimmer()) {
+     * schwimmer.updatePoints(); // update points for each swimmer based on their
+     * times
+     * }
+     * 
+     * club.generateLeaderboards();
+     * 
+     * for (int i = 0; i < k; i++) {
+     * TeamState teamState;
+     * do {
+     * teamState = new TeamState(club, true);
+     * } while (teamState.lineUp == null);
+     * 
+     * long start = System.nanoTime();
+     * 
+     * allBest.add(hillClimbing(teamState));
+     * 
+     * long end = System.nanoTime();
+     * 
+     * double seconds = (end - start) / 1_000_000_000.0;
+     * 
+     * System.out.println("Dauer HillClimb: " + seconds + " s");
+     * 
+     * }
+     * TeamState best = allBest.get(0);
+     * 
+     * for (TeamState state : allBest) {
+     * if (state.getTotalPoints() > best.getTotalPoints()) {
+     * best = state;
+     * }
+     * }
+     * return best;
+     * }
+     */
 
 }

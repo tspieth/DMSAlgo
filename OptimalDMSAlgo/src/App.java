@@ -28,7 +28,7 @@ public class App {
         // System.out.println(Competition.toStringBaseTimes(true));
         // System.out.println(Competition.toStringBaseTimes(false));
 
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
+        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/betterClub.csv");
 
         SwimmingClub club = new SwimmingClub(schwimmerListe);
         for (Swimmer schwimmer : club.getAllSwimmer()) {
@@ -46,7 +46,7 @@ public class App {
 
         long start = System.nanoTime();
 
-        TeamState best = LocalSearch.hillClimbingWithKStarts(teamState, 1000);
+        TeamState best = LocalSearch.hillClimbingWithKStarts(teamState, 10);
         // TeamState best = LocalSearch.hillClimbing(teamState);
         long end = System.nanoTime();
 

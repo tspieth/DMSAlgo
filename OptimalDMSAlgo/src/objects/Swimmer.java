@@ -26,7 +26,7 @@ public class Swimmer {
     private int endurance; // endurance level of the swimmer, determines how long breaks have to be between
                            // events
     private int maxSectionEvents = 3;
-    private int totalPoints;
+    private int totalPoints; // may be used for Optimisation
     private boolean isMale;
     private int countChoosenEvents = 0; // keeps track of how many events the swimmer has chosen
     private boolean[] eventIndices = new boolean[Competition.order.length]; // used to calculate brektimes between
