@@ -7,6 +7,8 @@ import java.util.Random;
 
 import io.CSVWriter;
 import service.LocalSearch;
+import service.AdaptiveSchedule;
+import service.ExponentialSchedule;
 import service.TeamState;
 
 public class ExperimentLocalSearch {
@@ -213,6 +215,132 @@ public class ExperimentLocalSearch {
 
         System.out.print(String.format("%s %3d%% (%d/%d)%n", bar.toString(), percent, done, total));
         System.out.flush();
+    }
+
+    /**
+     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void simulatedAnnealing(TeamState teamState) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"Simulated Annealing\":");
+        printProgressBar(0, ExperimentLocalSearch.countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/simulatedAnnealing.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
+
+        ExponentialSchedule schedule = new ExponentialSchedule(1, 0.995, 0.005);
+
+        // for (int i = 0; i <= 1; i++) {
+        // schedule.reset(1000);
+        // LocalSearch.SimulatedAnnealing(teamState, schedule); // JVM Warm-Up
+        // }
+
+        for (int i = 1; i <= ExperimentLocalSearch.countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+            schedule.reset(1); // so Schedule starts with 1000 degrees
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.SimulatedAnnealing(teamState, schedule);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.iterations);
+            String states = Long.toString(LocalSearch.statesCreated);
+
+            /*
+             * appendRow()
+             * standard;1;838;7239;30;145000
+             */
+            standardWriter.appendRow(Arrays.asList("simulatedAnnealing", run, score, time_ms, iterations, states));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, ExperimentLocalSearch.countData);
+        }
+    }
+
+    /**
+     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void simulatedAnnealingShavedN(TeamState teamState, int n) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"Shaved Annealing\":");
+        printProgressBar(0, ExperimentLocalSearch.countData);
+
+        int startTemp = 10; // to Set starting Temperatures;
+
+        CSVWriter standardWriter = new CSVWriter(
+                "OptimalDMSAlgo/data/temp" + startTemp + "Shaved" + n + "AnnealingSVM.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
+
+        AdaptiveSchedule schedule = new AdaptiveSchedule(startTemp, 0.001, 100);
+        // ExponentialSchedule schedule = new ExponentialSchedule(startTemp, 0.995,
+        // 0.1);
+
+        // for (int i = 0; i <= 1; i++) {
+        // schedule.reset(1000);
+        // LocalSearch.SimulatedAnnealing(teamState, schedule); // JVM Warm-Up
+        // }
+
+        for (int i = 1; i <= ExperimentLocalSearch.countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+            schedule.reset(startTemp); // so Schedule starts with startTemp degrees
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.SimulatedAnnealingShavedN(teamState, schedule, n);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.iterations); // FAKED RIGHT NOW IN COMMIT #30
+            String states = Long.toString(LocalSearch.statesCreated); // FAKED RIGHT NOW IN COMMIT #30
+
+            /*
+             * appendRow()
+             * standard;1;838;7239;30;145000
+             */
+            standardWriter.appendRow(Arrays.asList("temp" + startTemp + "shaved" + n + "Annealing", run, score, time_ms,
+                    iterations, states));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, ExperimentLocalSearch.countData);
+        }
     }
 
 }

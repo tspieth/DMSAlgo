@@ -3,6 +3,7 @@ package service;
 import java.util.ArrayList;
 import java.util.List;
 
+import experiments.ExperimentLocalSearch;
 import objects.SwimmingClub;
 
 public class LocalSearch {
@@ -100,6 +101,76 @@ public class LocalSearch {
             iterations++; // update Iterations
         }
         return currentState;
+    }
+
+    public static TeamState SimulatedAnnealing(TeamState current, ExponentialSchedule schedule) {
+
+        statesCreated = 0; // reset statesCreated
+        iterations = 0; // reset iterations
+        avgIterations = 0; // reset avgIterations
+
+        for (int i = 1;; i++) {
+            double t = schedule.getTemperature(i);
+            iterations++;
+
+            // System.out.println("Aktuelle Temperatur: " + t);
+            if (t == 0) {
+                return current;
+            }
+
+            TeamState next = current.getRandomNeighbor();
+            statesCreated += 3214; // just a aprox.
+
+            int E = next.getTotalPointsFast() - current.getTotalPointsFast();
+
+            if (E > 0) {
+                current = next;
+            } else {
+                double p = ExperimentLocalSearch.rng.nextDouble();
+
+                if (p < someFunction1(E, t)) {
+                    current = next;
+                }
+            }
+        }
+        // return current; => unreachable
+    }
+
+    public static TeamState SimulatedAnnealingShavedN(TeamState current, Schedule schedule, int n) {
+
+        statesCreated = 0; // reset statesCreated
+        iterations = 0; // reset iterations
+        avgIterations = 0; // reset avgIterations
+
+        for (int i = 1;; i++) {
+            double t = schedule.getTemperature(i);
+            iterations++;
+
+            // System.out.println("Aktuelle Temperatur: " + t);
+            if (t == 0) {
+                return current;
+            }
+
+            TeamState next = current.getRandomNeighborFromTopN(n);
+            statesCreated += 3214; // just a aprox.
+
+            int E = next.getTotalPointsFast() - current.getTotalPointsFast();
+
+            if (E > 0) {
+                current = next;
+            } else {
+                double p = ExperimentLocalSearch.rng.nextDouble();
+
+                if (p < someFunction1(E, t)) {
+                    current = next;
+                }
+            }
+        }
+        // return current; => unreachable
+    }
+
+    public static double someFunction1(int E, double t) {
+        return Math.exp(E / t);
     }
 
     /*

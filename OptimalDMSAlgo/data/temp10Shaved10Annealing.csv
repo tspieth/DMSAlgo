@@ -1,0 +1,3 @@
+variant;run;score;time_ms;iterations;states
+temp10shaved10Annealing;1;22942;13325.137;100.0;318186
+temp10shaved10Annealing;2;23022;11945.886;100.0;318186

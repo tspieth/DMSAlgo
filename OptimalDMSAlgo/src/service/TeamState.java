@@ -1,6 +1,7 @@
 package service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -306,6 +307,23 @@ public class TeamState {
             }
         }
         return bestState;
+    }
+
+    public TeamState getRandomNeighbor() {
+        List<TeamState> allNeighbors = this.createAllNeighbors();
+        int randomIndex = ExperimentLocalSearch.rng.nextInt(allNeighbors.size());
+        TeamState randomNeighbor = allNeighbors.get(randomIndex);
+        return randomNeighbor;
+    }
+
+    public TeamState getRandomNeighborFromTopN(int n) {
+        List<TeamState> allNeighbors = this.createAllNeighbors();
+        Collections.sort(allNeighbors, (a, b) -> Double.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
+
+        List<TeamState> topNeighbors = allNeighbors.subList(0, Math.min(n, allNeighbors.size()));
+        int randomIndex = ExperimentLocalSearch.rng.nextInt(topNeighbors.size());
+        TeamState randomNeighbor = topNeighbors.get(randomIndex);
+        return randomNeighbor;
     }
 
     // =============================================================
