@@ -8,6 +8,7 @@ import objects.SwimmingClub;
 public class LocalSearch {
 
     public static long statesCreated;
+    public static int iterations;
     public static double avgIterations;
 
     public static TeamState hillClimbing(TeamState current) {
@@ -15,7 +16,7 @@ public class LocalSearch {
         TeamState currentState = current;
 
         statesCreated = 0; // reset statesCreated
-        avgIterations = 0; // reset avgIterations
+        iterations = 0; // reset avgIterations
 
         while (true) {
 
@@ -30,7 +31,7 @@ public class LocalSearch {
             }
 
             currentState = bestNeighbor;
-            avgIterations++; // update Iterations
+            iterations++; // update Iterations
         }
         return currentState;
     }
@@ -39,6 +40,7 @@ public class LocalSearch {
         List<TeamState> allBest = new ArrayList<TeamState>();
 
         statesCreated = 0; // reset statesCreated
+        iterations = 0; // reset from previoud runs
         avgIterations = 0; // reset avgIterations
 
         for (int i = 0; i < k; i++) {
@@ -46,6 +48,8 @@ public class LocalSearch {
             current.newRandomLineUp();
 
             allBest.add(hillClimbing(current));
+
+            avgIterations += iterations;
 
         }
         TeamState best = allBest.get(0);

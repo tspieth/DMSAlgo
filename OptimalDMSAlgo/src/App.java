@@ -35,6 +35,7 @@ public class App {
 
         TeamState teamState = new TeamState(club, true);
 
+        ExperimentLocalSearch.kRestartsHillClimbing(5, teamState);
         ExperimentLocalSearch.standardHillClimbing(ExperimentLocalSearch.countData, teamState);
 
         /*
