@@ -64,6 +64,44 @@ public class LocalSearch {
         return best;
     }
 
+    public static TeamState hillClimbingWithKSide(TeamState current, int k) {
+
+        int css = 0;
+
+        TeamState currentState = current;
+
+        statesCreated = 0; // reset statesCreated
+        iterations = 0; // reset avgIterations
+        avgIterations = 0;
+
+        while (true) {
+
+            List<TeamState> neighbors = currentState.createAllNeighbors();
+
+            statesCreated += neighbors.size(); // add created states to total
+
+            TeamState bestNeighbor = TeamState.getBestState(neighbors);
+            int valBest = bestNeighbor.getTotalPointsFast();
+            int valCur = currentState.getTotalPointsFast();
+            if (valBest < valCur) {
+                break;
+            } else {
+                if (valBest == valCur) {
+                    css++;
+                    if (css == k) {
+                        break;
+                    }
+                } else {
+                    css = 0;
+                }
+                currentState = bestNeighbor;
+            }
+
+            iterations++; // update Iterations
+        }
+        return currentState;
+    }
+
     /*
      * DEPRECATED
      * public static TeamState hillClimbingWithKStarts(int k) {

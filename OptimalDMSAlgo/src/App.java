@@ -35,8 +35,12 @@ public class App {
 
         TeamState teamState = new TeamState(club, true);
 
-        ExperimentLocalSearch.kRestartsHillClimbing(5, teamState);
-        ExperimentLocalSearch.standardHillClimbing(ExperimentLocalSearch.countData, teamState);
+        // ExperimentLocalSearch.kSideStepsHillClimbing(2, teamState);
+        // ExperimentLocalSearch.kSideStepsHillClimbing(20, teamState);
+        // ExperimentLocalSearch.kRestartsHillClimbing(50, teamState);
+        // ExperimentLocalSearch.kRestartsHillClimbing(5, teamState);
+        // ExperimentLocalSearch.standardHillClimbing(ExperimentLocalSearch.countData,
+        // teamState);
 
         /*
          * System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());
