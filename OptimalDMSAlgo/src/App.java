@@ -35,7 +35,7 @@ public class App {
 
         TeamState teamState = new TeamState(club, true);
 
-        ExperimentLocalSearch.standardHillClimbing(30, teamState);
+        ExperimentLocalSearch.standardHillClimbing(ExperimentLocalSearch.countData, teamState);
 
         /*
          * System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());

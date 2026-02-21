@@ -28,6 +28,7 @@ public class ExperimentLocalSearch {
 
         // Just for Fun
         // print initial progress bar (0%)
+        System.out.println("Experiment \"Standart Hill Climbing\":");
         printProgressBar(0, k);
 
         CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHill.csv", ";");
