@@ -12,6 +12,14 @@ public class LocalSearch {
     public static int iterations;
     public static double avgIterations;
 
+    /**
+     * Standard HillClimbing from Lecture SPS at Universitiy of Mannheim
+     * 
+     * in each Turn the Best Neighbor is choosen;
+     * 
+     * @param current
+     * @return
+     */
     public static TeamState hillClimbing(TeamState current) {
 
         TeamState currentState = current;
@@ -35,6 +43,55 @@ public class LocalSearch {
             iterations++; // update Iterations
         }
         return currentState;
+    }
+
+    public static TeamState firstChoiceHillClimbing(TeamState current) {
+
+        TeamState currentState = current;
+
+        statesCreated = 0; // reset statesCreated
+        iterations = 0; // reset avgIterations
+
+        while (true) {
+
+            TeamState firstBetter = currentState.getFirstBetterRandomNeighbor();
+
+            if (firstBetter == null) {
+                break; // no better neighbor was found
+            }
+
+            currentState = firstBetter;
+            iterations++; // update Iterations
+        }
+        return currentState;
+    }
+
+    public static TeamState firstChoiceHillClimbingWithKStarts(TeamState current, int k) {
+        List<TeamState> allBest = new ArrayList<TeamState>();
+
+        statesCreated = 0; // reset statesCreated
+        iterations = 0; // reset from previoud runs
+        avgIterations = 0; // reset avgIterations
+
+        for (int i = 0; i < k; i++) {
+
+            current.newRandomLineUp();
+
+            allBest.add(firstChoiceHillClimbing(current));
+
+            avgIterations += iterations;
+
+        }
+        TeamState best = allBest.get(0);
+
+        for (TeamState state : allBest) {
+            if (state.getTotalPoints() > best.getTotalPoints()) {
+                best = state;
+            }
+        }
+
+        avgIterations = avgIterations / (double) k; // calculate avgIterations
+        return best;
     }
 
     public static TeamState hillClimbingWithKStarts(TeamState current, int k) {

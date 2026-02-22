@@ -257,6 +257,19 @@ public class TeamState {
         return neighbors;
     }
 
+    public TeamState createRandomNeighbor(int orderIndex, int swimmerIndex) {
+        TeamState neighbor = null;
+
+        Swimmer swimmer = availableSwimmers.get(swimmerIndex);
+
+        if (swimmer.canChooseOrderIndex(orderIndex)) {
+            neighbor = new TeamState(this);
+            neighbor.swapAthletes(orderIndex, swimmer.getID());
+        }
+
+        return neighbor;
+    }
+
     // MAYBE A little uneffective O(n) because we have to search through all
     // athletes
     // O(1) could be reachable
@@ -324,6 +337,35 @@ public class TeamState {
         int randomIndex = ExperimentLocalSearch.rng.nextInt(topNeighbors.size());
         TeamState randomNeighbor = topNeighbors.get(randomIndex);
         return randomNeighbor;
+    }
+
+    public TeamState getFirstBetterRandomNeighbor() {
+
+        int orderCount = this.order.length;
+        int swimmerCount = availableSwimmers.size();
+        List<int[]> moves = new ArrayList<>();
+
+        for (int o = 0; o < orderCount; o++) {
+            if (this.order[o][0] < 0) {
+                continue; // This event is eather a break or not for the gender;
+            }
+            for (int s = 0; s < swimmerCount; s++) {
+                moves.add(new int[] { o, s });
+            }
+        }
+
+        Collections.shuffle(moves, ExperimentLocalSearch.rng);
+
+        for (int[] m : moves) {
+            TeamState neighbor = createRandomNeighbor(m[0], m[1]);
+
+            // greedy auswertug verhindert hier nullPointer exceptions
+            if (neighbor != null && neighbor.getTotalPointsFast() > this.totalPoints) {
+                return neighbor;
+            }
+        }
+
+        return null;
     }
 
     // =============================================================

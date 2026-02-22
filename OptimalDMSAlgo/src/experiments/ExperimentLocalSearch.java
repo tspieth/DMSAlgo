@@ -26,13 +26,13 @@ public class ExperimentLocalSearch {
      * 
      * @param k
      */
-    public static void standardHillClimbing(int k, TeamState teamState) throws IOException {
+    public static void standardHillClimbing(TeamState teamState) throws IOException {
 
         // Just for Fun
         // Print initial progress bar (0%)
         progressBarInitialized = false;
         System.out.println("Experiment \"Standart Hill Climbing\":");
-        printProgressBar(0, k);
+        printProgressBar(0, countData);
 
         CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHill.csv", ";");
 
@@ -46,7 +46,7 @@ public class ExperimentLocalSearch {
             LocalSearch.hillClimbing(teamState); // JVM Warm-Up
         }
 
-        for (int i = 1; i <= k; i++) {
+        for (int i = 1; i <= countData; i++) {
 
             teamState.newRandomLineUp(); // so runs dont give same outcome
 
@@ -71,12 +71,127 @@ public class ExperimentLocalSearch {
 
             // Just for Fun
             // Update progress bar after finishing this run
-            printProgressBar(i, k);
+            printProgressBar(i, countData);
         }
     }
 
     /**
      * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void firstChoiceHillClimbing(TeamState teamState) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"First Choice Hill Climbing\":");
+        printProgressBar(0, countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/firstChoiceHill.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+        }
+
+        for (int i = 1; i <= countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.firstChoiceHillClimbing(teamState);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.iterations);
+            String states = Long.toString(LocalSearch.statesCreated);
+
+            /*
+             * appendRow()
+             * firstChoice;1;838;7239;30;145000
+             */
+            standardWriter.appendRow(Arrays.asList("firstChoice", run, score, time_ms, iterations, states));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, countData);
+        }
+    }
+
+    /**
+     * Startet k-Restart-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void kRestartsFirstChoiceHillClimbing(int k, TeamState teamState) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"" + k + "-Restarts Hill Climbing with First Choice\":");
+        printProgressBar(0, ExperimentLocalSearch.countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/firstChoice_" + k + "_RestartsHill_.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,avg_iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "avg_iterations", "states"));
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.firstChoiceHillClimbing(teamState); // JVM Warm-Up
+        }
+
+        for (int i = 1; i <= ExperimentLocalSearch.countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.firstChoiceHillClimbingWithKStarts(teamState, k);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.avgIterations);
+            String states = Long.toString(LocalSearch.statesCreated);
+
+            /*
+             * appendRows()
+             * k_Restarts;1;838;7239;30;145000
+             */
+            standardWriter
+                    .appendRow(Arrays.asList("firstChoice" + k + "_Restarts", run, score, time_ms, iterations, states));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, ExperimentLocalSearch.countData);
+
+        }
+
+    }
+
+    /**
+     * Startet k-Restart-Hill-Climbing k Mal und erstellt ein .csv Datei im
      * Verzeichnis:
      * OptimalDMSAlgo/data
      * 
@@ -134,7 +249,7 @@ public class ExperimentLocalSearch {
     }
 
     /**
-     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Startet SideSteps-Hill-Climbing k Mal und erstellt ein .csv Datei im
      * Verzeichnis:
      * OptimalDMSAlgo/data
      * 
@@ -217,10 +332,16 @@ public class ExperimentLocalSearch {
         System.out.flush();
     }
 
+    // =========================================
+    // Simulated Annealing Variations
+    // =========================================
+
     /**
-     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Startet Simulated Annealing "countData" Mal und erstellt ein .csv Datei im
      * Verzeichnis:
      * OptimalDMSAlgo/data
+     * 
+     * ATTENTION: RESULTS VARY DEPENDING ON SCHEDULE
      * 
      * @param k
      */
@@ -278,9 +399,11 @@ public class ExperimentLocalSearch {
     }
 
     /**
-     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Startet Shavd Annealing countData Mal und erstellt ein .csv Datei im
      * Verzeichnis:
      * OptimalDMSAlgo/data
+     * 
+     * ATTENTION: RESULTS VARY DEPENDING ON SCHEDULE
      * 
      * @param k
      */
