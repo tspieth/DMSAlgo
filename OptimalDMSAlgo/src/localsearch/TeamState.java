@@ -1,4 +1,4 @@
-package service;
+package localsearch;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -457,6 +457,61 @@ public class TeamState {
 
         }
         return sb.toString();
+    }
+
+    // =============================================================
+    // AI GENERATED COMPLETLY BY COPILOT
+    // =============================================================
+
+    public TeamState getFirstBetterRandomNeighborkSwaps(int k) {
+        if (k <= 0) {
+            return null;
+        }
+
+        int orderCount = this.order.length;
+        int swimmerCount = availableSwimmers.size();
+        List<int[]> moves = new ArrayList<>();
+
+        for (int o = 0; o < orderCount; o++) {
+            if (this.order[o][0] < 0) {
+                continue; // This event is either a break or not for the gender;
+            }
+            for (int s = 0; s < swimmerCount; s++) {
+                moves.add(new int[] { o, s });
+            }
+        }
+
+        Collections.shuffle(moves, ExperimentLocalSearch.rng);
+
+        // Use recursive search up to depth k. The helper will try moves in the
+        // shuffled order and return the first found improving neighbor.
+        return findFirstBetterByDepth(this, moves, k, this.totalPoints);
+    }
+
+    // recursive helper: current = current state to expand, remainingSwaps = how
+    // many
+    // more swaps are allowed, baseline = original points to compare improvements
+    // against
+    private TeamState findFirstBetterByDepth(TeamState current, List<int[]> moves, int remainingSwaps,
+            int baseline) {
+        if (remainingSwaps <= 0) {
+            return null;
+        }
+
+        for (int[] m : moves) {
+            TeamState next = current.createRandomNeighbor(m[0], m[1]);
+            if (next == null) {
+                continue;
+            }
+            if (next.getTotalPointsFast() > baseline) {
+                return next;
+            }
+            TeamState deeper = findFirstBetterByDepth(next, moves, remainingSwaps - 1, baseline);
+            if (deeper != null) {
+                return deeper;
+            }
+        }
+        return null;
     }
 
 }

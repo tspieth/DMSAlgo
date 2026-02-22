@@ -1,4 +1,4 @@
-package service;
+package localsearch;
 
 public class ExponentialSchedule implements Schedule {
     private double temperature;

@@ -6,10 +6,10 @@ import java.util.Locale;
 import java.util.Random;
 
 import io.CSVWriter;
-import service.LocalSearch;
-import service.AdaptiveSchedule;
-import service.ExponentialSchedule;
-import service.TeamState;
+import localsearch.AdaptiveSchedule;
+import localsearch.ExponentialSchedule;
+import localsearch.LocalSearch;
+import localsearch.TeamState;
 
 public class ExperimentLocalSearch {
 
@@ -98,9 +98,9 @@ public class ExperimentLocalSearch {
          */
         standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
 
-        for (int i = 0; i <= 3; i++) {
-            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
-        }
+        // for (int i = 0; i <= 3; i++) {
+        // LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+        // }
 
         for (int i = 1; i <= countData; i++) {
 

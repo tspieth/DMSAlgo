@@ -1,4 +1,4 @@
-package service;
+package localsearch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +55,7 @@ public class LocalSearch {
         while (true) {
 
             TeamState firstBetter = currentState.getFirstBetterRandomNeighbor();
+            // TeamState firstBetter = currentState.getFirstBetterRandomNeighborkSwaps(3);
 
             if (firstBetter == null) {
                 break; // no better neighbor was found

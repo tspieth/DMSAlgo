@@ -4,11 +4,11 @@ import java.util.List;
 
 import experiments.ExperimentLocalSearch;
 import io.CSVReader;
+import localsearch.LocalSearch;
+import localsearch.TeamState;
 import objects.Competition;
 import objects.Swimmer;
 import objects.SwimmingClub;
-import service.LocalSearch;
-import service.TeamState;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -25,7 +25,7 @@ public class App {
         int[][] orderFemale = CSVReader.getEventOrder("OptimalDMSAlgo/resources/order.csv", false);
         Competition.setOrder(orderFemale, false);
 
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/betterClub.csv");
+        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
 
         SwimmingClub club = new SwimmingClub(schwimmerListe);
         for (Swimmer schwimmer : club.getAllSwimmer()) {
@@ -35,8 +35,8 @@ public class App {
 
         TeamState teamState = new TeamState(club, true);
 
-        ExperimentLocalSearch.kRestartsFirstChoiceHillClimbing(100, teamState);
-        // ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
+        // ExperimentLocalSearch.kRestartsFirstChoiceHillClimbing(100, teamState);
+        ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(100000, teamState);
         // ExperimentLocalSearch.simulatedAnnealingShavedN(teamState, 50);
         // ExperimentLocalSearch.simulatedAnnealing(teamState);

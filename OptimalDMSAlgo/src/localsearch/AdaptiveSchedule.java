@@ -1,4 +1,4 @@
-package service;
+package localsearch;
 
 public class AdaptiveSchedule implements Schedule {
 
