@@ -123,6 +123,10 @@ public class Swimmer {
         }
     }
 
+    public int getPointsForEventIndex(int eventIndex) {
+        return this.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
+    }
+
     public int getPointsForOrderIndex(int orderIndex) {
         int eventIndex = Competition.order[orderIndex][0];
         return this.getPointsForEvent(SwimmingEvent.values()[eventIndex]);

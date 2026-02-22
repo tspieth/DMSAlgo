@@ -25,7 +25,7 @@ public class App {
         int[][] orderFemale = CSVReader.getEventOrder("OptimalDMSAlgo/resources/order.csv", false);
         Competition.setOrder(orderFemale, false);
 
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
+        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/betterClub.csv");
 
         SwimmingClub club = new SwimmingClub(schwimmerListe);
         for (Swimmer schwimmer : club.getAllSwimmer()) {
@@ -36,7 +36,7 @@ public class App {
         TeamState teamState = new TeamState(club, true);
 
         // ExperimentLocalSearch.kRestartsFirstChoiceHillClimbing(100, teamState);
-        ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
+        // ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(100000, teamState);
         // ExperimentLocalSearch.simulatedAnnealingShavedN(teamState, 50);
         // ExperimentLocalSearch.simulatedAnnealing(teamState);
@@ -44,8 +44,7 @@ public class App {
         // ExperimentLocalSearch.kSideStepsHillClimbing(20, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(50, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(5, teamState);
-        // ExperimentLocalSearch.standardHillClimbing(ExperimentLocalSearch.countData,
-        // teamState);
+        ExperimentLocalSearch.standardHillClimbing(teamState);
 
         /*
          * System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());
