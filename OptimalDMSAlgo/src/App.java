@@ -40,7 +40,7 @@ public class App {
         TeamNode testNode = new TeamNode(club, true);
 
         TeamNode best = BranchNBound.knapSackSolver(testNode, 0);
-        System.out.println(best.getTotalPoints());
+        // System.out.println(best.getTotalPoints());
         // System.out.println(club.toStringLeaderboards(100, true));
         // System.out.print(testNode.toStringSimpleLeaderBoard());
         // System.out.println(testNode.getUpperBound());

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import objects.Competition;
 import objects.Swimmer;
@@ -19,6 +20,29 @@ import objects.SwimmingEvent;
  * 
  */
 public class TeamNode {
+
+    /**
+     * Innere Klasse zur Speicherung eines Event-Ergebnisses
+     * mit Schwimmer, Event und geholten Punkten
+     */
+    private static class EventResult implements Comparable<EventResult> {
+        Swimmer swimmer; // Der Schwimmer
+        int eventIndex; // Event-Index
+        int orderIndex; // Mögliche Position in der Order (-1 wenn multiple möglich)
+        int points; // Punkte für diese Zuweisung
+
+        EventResult(Swimmer swimmer, int eventIndex, int points) {
+            this.swimmer = swimmer;
+            this.eventIndex = eventIndex;
+            this.points = points;
+            this.orderIndex = -1; // wird später gesetzt wenn nötig
+        }
+
+        @Override
+        public int compareTo(EventResult other) {
+            return Integer.compare(other.points, this.points); // absteigend sortiert (beste zuerst)
+        }
+    }
 
     private boolean isMale;
     private int totalPoints = 0; // total points of the current team state
@@ -34,24 +58,13 @@ public class TeamNode {
     private Map<SwimmingEvent, List<Swimmer>> leaderboards; // leaderboard for every event
 
     // New Attributes specially for BranchNBound
-    private int nextSwimmerIndexForPosition = 0; // trackiert welcher Schwimmer für aktuelle Position versucht wird
+    private int optimizedEventResultIndex = 0; // Trackt aktuellen Index in sortedEventResults
     public static int lowerBound = 0; // Lower Bound
     // if updated we need to know in every other Node
     // only Upates when this.isFull and lowerBound < this.totalPoints
     private int UpperBound = 0; // upperBound
 
-    private int[][] simpleLeaderbord; // for Calculation of upperBound
-    // first Idea:
-    // simpleL[i][0] countains best points for event with index i
-    // simpleL[i][1] contains second best points for event with index i
-    // These are the only needed to calculate an excact upperBound
-
-    // second Idea:
-    // simpleL[i][0] countains best Swimmer ID
-    // simpleL[i][1] contains second best Swimmer ID
-    // I dont know what the inention here is
-    // because we need O(2n) to get the points
-    // Could allow better upperBound
+    private List<EventResult> sortedEventResults; // Alle Event-Ergebnisse global sortiert nach Punkten absteigend
 
     // =============================================================
     // Konstruktoren
@@ -134,8 +147,8 @@ public class TeamNode {
         this.totalPoints = other.totalPoints;
         this.isMale = other.isMale;
         this.order = other.order;
-        this.simpleLeaderbord = other.simpleLeaderbord;
-        this.nextSwimmerIndexForPosition = 0; // Zurücksetzen für nächste Position
+        this.sortedEventResults = other.sortedEventResults;
+        this.optimizedEventResultIndex = 0; // Zurücksetzen für nächste EventResult
 
         // Map original -> copy
         Map<Swimmer, Swimmer> copies = new HashMap<>();
@@ -183,74 +196,89 @@ public class TeamNode {
 
     // Maybe needs Check so it works reliable Lists in the Map have to be sorted
     public void createSimpleLead() {
-
-        int[][] simpleLead = new int[leaderboards.entrySet().size()][2];
+        // Sammle ALLE Event-Ergebnisse von ALLEN Schwimmern
+        List<EventResult> allResults = new ArrayList<>();
 
         for (Map.Entry<SwimmingEvent, List<Swimmer>> e : leaderboards.entrySet()) {
-
             int eventId = e.getKey().getIndex();
 
-            // Maybe check is needed that e.getValue() is already sorted so best comes first
-            Swimmer best = e.getValue().get(0);
-            Swimmer second = e.getValue().get(1);
-
-            simpleLead[eventId][0] = (best != null) ? best.getPointsForEventIndex(eventId) : 0;
-            simpleLead[eventId][1] = (second != null) ? second.getPointsForEventIndex(eventId) : 0;
+            // Für jeden Schwimmer in diesem Event: erstelle ein EventResult
+            for (Swimmer swimmer : e.getValue()) {
+                int points = swimmer.getPointsForEventIndex(eventId);
+                allResults.add(new EventResult(swimmer, eventId, points));
+            }
         }
 
-        this.simpleLeaderbord = simpleLead;
+        // Sortiere ALLE Ergebnisse global nach Punkten (absteigend - beste zuerst)
+        allResults.sort(null);
+
+        this.sortedEventResults = allResults;
     }
 
     /**
-     * First Version suposes Team States are calculated by going throug Linup
-     * by filling the Linup Linear
+     * Super schnelle Upper Bound Berechnung mit globaler sortierter Liste.
      * 
+     * Durchlaufe die sortierte Liste aller Event-Ergebnisse (beste zuerst).
+     * Für jedes Ergebnis: Wenn Position frei und Event noch nicht 2x verwendet,
+     * dann addiere Punkte und markiere als verwendet.
      * 
-     * SHOULD BE OPTIMICED
-     * Could be Simplyfied by using totalPoints
-     * Result would be FASTER because we dont have to call methodes from Swimmers
+     * Komplexität: O(n) wobei n = Anzahl aller Event-Ergebnisse.
+     */
+    /**
+     * Super schnelle Upper Bound Berechnung mit globaler sortierter Liste.
      * 
+     * Durchlaufe die sortierte Liste aller Event-Ergebnisse (beste zuerst).
+     * Für jedes beste Ergebnis: Versuche es in eine beliebige freie Position
+     * für diesen Event einzuplatzieren (egal welcher orderIndex).
      * 
+     * Schwimmer können in mehreren verschiedenen Events antreten!
      */
     public void setUpperBound() {
+        int upper = totalPoints;
 
-        // Indicates if the first entry is already in team
-        boolean[] firstIsTaken = new boolean[simpleLeaderbord.length];
-        Arrays.fill(firstIsTaken, false);
+        // Tracke welche Order-Positionen bereits gefüllt sind
+        boolean[] filledPosition = new boolean[order.length];
+        for (int i = 0; i < order.length; i++) {
+            if (lineUp.get(i) != null) {
+                filledPosition[i] = true;
+            }
+        }
 
-        int upper = 0;
-
-        for (int i = 0; i < this.order.length; i++) {
-
+        // Tracke wie oft jedes Event schon verwendet wurde
+        int[] eventUsageCount = new int[SwimmingEvent.values().length];
+        for (int i = 0; i < order.length; i++) {
             int eventIndex = order[i][0];
+            if (eventIndex >= 0 && filledPosition[i]) {
+                eventUsageCount[eventIndex]++;
+            }
+        }
 
-            if (eventIndex < 0) {
-                continue; // break or other gender
+        // Gehe durch sortierte Liste (beste Ergebnisse zuerst)
+        for (EventResult result : sortedEventResults) {
+
+            // Prüfe ob dieses Event schon 2x verwendet wurde
+            if (eventUsageCount[result.eventIndex] >= 2) {
+                continue; // Dieses Event hat keine Plätze mehr
             }
 
-            Swimmer eventSwimmer = lineUp.get(i);
-            if (eventSwimmer != null) {
+            // Suche IRGENDEINE freie Position für diesen Event
+            for (int i = 0; i < order.length; i++) {
+                int eventIndex = order[i][0];
 
-                int eventPoints = eventSwimmer.getPointsForOrderIndex(i);
-                upper += eventPoints;
-
-                if (eventPoints >= simpleLeaderbord[eventIndex][0]) {
-                    firstIsTaken[eventIndex] = true;
-                }
-            } else {
-                if (firstIsTaken[eventIndex]) {
-                    upper += simpleLeaderbord[eventIndex][1];
-                } else {
-                    upper += simpleLeaderbord[eventIndex][0];
-                    firstIsTaken[eventIndex] = true;
-                    /*
-                     * System.out.println(
-                     * "First Event for: " + SwimmingEvent.values()[eventIndex].getDisplayName() +
-                     * " was taken.");
-                     */
+                // Ist diese Position frei und für diesen Event?
+                if (eventIndex == result.eventIndex && !filledPosition[i]) {
+                    // Kann der Schwimmer diese Position schwimmen?
+                    if (result.swimmer.canChooseOrderIndex(i)) {
+                        // JA → Platziere es!
+                        filledPosition[i] = true;
+                        eventUsageCount[result.eventIndex]++;
+                        upper += result.points;
+                        break; // Gehe zum nächsten best EventResult
+                    }
                 }
             }
         }
+
         this.UpperBound = upper;
     }
 
@@ -258,48 +286,78 @@ public class TeamNode {
     // DFS Logic to Create Childs
     // =============================================================
 
+    /**
+     * Erstellt Child-Knoten aus der sortierten EventResults Liste.
+     * Nimmt das beste verfügbare EventResult und versucht es zu platzieren.
+     * 
+     * @return Nächster Child-Knoten oder null wenn keine mehr existieren
+     */
     public TeamNode nextChildNode() {
-        TeamNode nextChild = new TeamNode(this);
-
-        int toChoose = getNextLineUpSpot();
-
-        // There is no free Spot
-        if (toChoose < 0) {
-            return null;
+        // Tracke wie oft jedes Event schon verwendet wurde
+        int[] eventUsageCount = new int[SwimmingEvent.values().length];
+        for (int i = 0; i < order.length; i++) {
+            int eventIndex = order[i][0];
+            if (eventIndex >= 0 && lineUp.get(i) != null) {
+                eventUsageCount[eventIndex]++;
+            }
         }
 
-        int eventIndex = Competition.getEventIndexByOrderIndex(toChoose);
-        SwimmingEvent event = SwimmingEvent.values()[eventIndex];
+        // Versuche jedes beste EventResult nacheinander zu platzieren
+        while (optimizedEventResultIndex < sortedEventResults.size()) {
+            EventResult result = sortedEventResults.get(optimizedEventResultIndex);
+            optimizedEventResultIndex++;
 
-        // Nutze nextSwimmerIndexForPosition um verschiedene Schwimmer zu versuchen
-        if (nextSwimmerIndexForPosition >= nextChild.leaderboards.get(event).size()) {
-            // Haben alle Schwimmer versucht, zurücksetzen für nächste Position
-            this.nextSwimmerIndexForPosition = 0;
-            return null; // No more swimmers for this position
+            // Prüfe ob dieses Event schon 2x verwendet wurde
+            if (eventUsageCount[result.eventIndex] >= 2) {
+                continue; // Überspringe, dieses Event hat keine Plätze mehr
+            }
+
+            // Erstelle neuen Child-Knoten
+            TeamNode nextChild = new TeamNode(this);
+            
+            // Finde die Kopie dieses Schwimmers im Child
+            Swimmer swimmerCopy = null;
+            SwimmingEvent event = SwimmingEvent.values()[result.eventIndex];
+            for (Swimmer s : nextChild.leaderboards.get(event)) {
+                if (s.getID() == result.swimmer.getID()) {
+                    swimmerCopy = s;
+                    break;
+                }
+            }
+
+            if (swimmerCopy == null) {
+                continue; // Schwimmer nicht gefunden, weiter zum nächsten
+            }
+
+            // Suche eine freie Position für diesen Event
+            for (int i = 0; i < nextChild.order.length; i++) {
+                int eventIndex = nextChild.order[i][0];
+
+                // Ist diese Position frei und für diesen Event?
+                if (eventIndex == result.eventIndex && nextChild.lineUp.get(i) == null) {
+                    // Kann der Schwimmer diese Position schwimmen?
+                    if (swimmerCopy.canChooseOrderIndex(i)) {
+                        // JA → Platziere es!
+                        swimmerCopy.chooseEvent(i);
+                        int pointsForEvent = swimmerCopy.getPointsForOrderIndex(i);
+                        nextChild.totalPoints += pointsForEvent;
+                        nextChild.lineUp.put(i, swimmerCopy);
+
+                        // Berechne neue Upper Bound
+                        nextChild.setUpperBound();
+
+                        // Setze Flag zurück für nächste Position
+                        nextChild.optimizedEventResultIndex = 0;
+
+                        return nextChild;
+                    }
+                }
+            }
         }
 
-        Swimmer nextBest = nextChild.leaderboards.get(event).get(nextSwimmerIndexForPosition);
-
-        if (nextBest != null && nextBest.canChooseOrderIndex(toChoose)) {
-            // Update total points und Schwimmer im CHILD Knoten
-            nextBest.chooseEvent(toChoose);
-            int pointsForEvent = nextBest.getPointsForOrderIndex(toChoose);
-            nextChild.totalPoints += pointsForEvent;
-
-            // Put nextBestSwimmer in the lineUp der CHILD
-            nextChild.lineUp.put(toChoose, nextBest);
-
-            nextChild.setUpperBound();
-
-            // Inkrementiere für nächsten Aufruf
-            this.nextSwimmerIndexForPosition++;
-
-            return nextChild;
-        } else {
-            // Dieser Schwimmer kann diese Position nicht schwimmen, versuch nächsten
-            this.nextSwimmerIndexForPosition++;
-            return this.nextChildNode(); // Rekursiv nächsten versuchen
-        }
+        // Keine gültigen Child-Knoten mehr
+        this.optimizedEventResultIndex = 0;
+        return null;
     }
 
     // Can be pruned if the UpperBound is lower than lowerBound
@@ -357,13 +415,14 @@ public class TeamNode {
 
     public String toStringSimpleLeaderBoard() {
         StringBuilder sb = new StringBuilder();
+        sb.append("Global Event Results (sorted by points, best first):\n");
 
-        for (int i = 0; i < simpleLeaderbord.length; i++) {
-            SwimmingEvent event = SwimmingEvent.values()[i];
-            sb.append("Leaderboard for ").append(event.getDisplayName()).append(isMale ? " (m)" : " (f)").append(":\n");
-            sb.append("Best Points: ").append(simpleLeaderbord[i][0]).append("\n");
-            sb.append("Second Best Points: ").append(simpleLeaderbord[i][1]).append("\n");
-            sb.append("**********************************\n");
+        for (EventResult result : sortedEventResults) {
+            SwimmingEvent event = SwimmingEvent.values()[result.eventIndex];
+            sb.append(String.format("%s - %s: %d points%n",
+                    result.swimmer.getName(),
+                    event.getDisplayName(),
+                    result.points));
         }
         return sb.toString();
     }
