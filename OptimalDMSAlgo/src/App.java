@@ -2,6 +2,8 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import branchNbound.BranchNBound;
+import branchNbound.TeamNode;
 import experiments.ExperimentLocalSearch;
 import io.CSVReader;
 import localsearch.LocalSearch;
@@ -25,7 +27,7 @@ public class App {
         int[][] orderFemale = CSVReader.getEventOrder("OptimalDMSAlgo/resources/order.csv", false);
         Competition.setOrder(orderFemale, false);
 
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/betterClub.csv");
+        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
 
         SwimmingClub club = new SwimmingClub(schwimmerListe);
         for (Swimmer schwimmer : club.getAllSwimmer()) {
@@ -33,7 +35,19 @@ public class App {
         }
         club.generateLeaderboards();
 
-        TeamState teamState = new TeamState(club, true);
+        // TeamState teamState = new TeamState(club, true);
+
+        TeamNode testNode = new TeamNode(club, true);
+
+        TeamNode best = BranchNBound.knapSackSolver(testNode, 0);
+        System.out.println(best.getTotalPoints());
+        // System.out.println(club.toStringLeaderboards(100, true));
+        // System.out.print(testNode.toStringSimpleLeaderBoard());
+        // System.out.println(testNode.getUpperBound());
+
+        // ===================
+        // Experiment Calls
+        // ===================
 
         // ExperimentLocalSearch.kRestartsFirstChoiceHillClimbing(100, teamState);
         // ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
@@ -44,7 +58,7 @@ public class App {
         // ExperimentLocalSearch.kSideStepsHillClimbing(20, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(50, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(5, teamState);
-        ExperimentLocalSearch.standardHillClimbing(teamState);
+        // ExperimentLocalSearch.standardHillClimbing(teamState);
 
         /*
          * System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());

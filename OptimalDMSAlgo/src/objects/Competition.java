@@ -108,6 +108,10 @@ public class Competition {
         return time;
     }
 
+    public static int getEventIndexByOrderIndex(int orderIndex) {
+        return order[orderIndex][0];
+    }
+
     // ================================================
     // toString() Methodes
     // ================================================

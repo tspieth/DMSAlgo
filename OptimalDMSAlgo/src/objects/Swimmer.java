@@ -301,6 +301,11 @@ public class Swimmer {
         }
     }
 
+    // For easy calling
+    public boolean canChooseEvent(int eventIndex) {
+        return this.canChooseEvent(SwimmingEvent.values()[eventIndex]);
+    }
+
     // For simplicity this methode supposes that the athlete starts in the last heat
     // of the last event he compeated in and in the first of the order index
     public boolean hasEnoughBreak(int orderIndex) {
