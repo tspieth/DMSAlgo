@@ -314,7 +314,7 @@ public class TeamNode {
 
             // Erstelle neuen Child-Knoten
             TeamNode nextChild = new TeamNode(this);
-            
+
             // Finde die Kopie dieses Schwimmers im Child
             Swimmer swimmerCopy = null;
             SwimmingEvent event = SwimmingEvent.values()[result.eventIndex];
