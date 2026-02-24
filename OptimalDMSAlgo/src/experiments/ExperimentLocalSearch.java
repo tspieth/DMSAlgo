@@ -34,7 +34,7 @@ public class ExperimentLocalSearch {
         System.out.println("Experiment \"Standart Hill Climbing\":");
         printProgressBar(0, countData);
 
-        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHill.csv", ";");
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHillEXTREM.csv", ";");
 
         /*
          * writingHeader()
@@ -271,6 +271,9 @@ public class ExperimentLocalSearch {
 
         for (int i = 1; i <= ExperimentLocalSearch.countData; i++) {
 
+            for (int j = 0; j < 600000; j++) {
+                teamState.newRandomLineUp();
+            }
             teamState.newRandomLineUp(); // so runs dont give same outcome
 
             long start = System.nanoTime();
@@ -279,6 +282,7 @@ public class ExperimentLocalSearch {
 
             long durationNs = end - start;
             double durationMs = durationNs / 1_000_000.0;
+            System.out.println(best.toStringLineUp());
 
             String run = Integer.toString(i);
             String score = Integer.toString(best.getTotalPoints());

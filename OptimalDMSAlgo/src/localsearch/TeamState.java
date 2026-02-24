@@ -185,6 +185,7 @@ public class TeamState {
             System.out.println("Failed to generate a valid lineup after " + maxAttempts + " attempts.");
             return false;
         }
+        setEmptyLineup();
         return true;
     }
 
@@ -308,8 +309,12 @@ public class TeamState {
     public void swapAthletes(int orderIndex, int athleteID) {
         SwimmingEvent event = SwimmingEvent.values()[Competition.order[orderIndex][0]];
         Swimmer original = lineUp.get(Integer.valueOf(orderIndex));
-        original.removeEvent(orderIndex);
-        this.totalPoints -= original.getPointsForEvent(event);
+
+        // prepped so empty Lineups can be used
+        if (original != null) {
+            original.removeEvent(orderIndex);
+            this.totalPoints -= original.getPointsForEvent(event);
+        }
 
         Swimmer athlete = null;
         for (Swimmer s : this.availableSwimmers) {
@@ -408,6 +413,13 @@ public class TeamState {
         this.totalPoints = 0;
         for (Swimmer swimmer : this.availableSwimmers) {
             swimmer.resetEvents();
+        }
+    }
+
+    public void setEmptyLineup() {
+        this.lineUp = new HashMap<>();
+        for (int i = 0; i < this.order.length; i++) {
+            this.lineUp.put(i, null);
         }
     }
 
