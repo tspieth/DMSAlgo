@@ -80,8 +80,6 @@ public class LocalSearch {
 
         for (int i = 0; i < k; i++) {
 
-            current.newRandomLineUp();
-
             allBest.add(firstChoiceHillClimbing(current));
 
             avgIterations += iterations;
