@@ -82,6 +82,58 @@ public class ExperimentLocalSearch {
      * 
      * @param k
      */
+    public static void beamSearch(TeamState teamState, int k) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"Local Beam Search\":");
+        printProgressBar(0, countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/local" + k + "Beam.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
+
+        for (int i = 1; i <= countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.beamSearch(teamState, k);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.iterations);
+            String states = Long.toString(LocalSearch.statesCreated);
+
+            /*
+             * appendRow()
+             * standard;1;838;7239;30;145000
+             */
+            standardWriter.appendRow(Arrays.asList("beamSearch", run, score, time_ms, iterations, states));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, countData);
+        }
+    }
+
+    /**
+     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
     public static void firstChoiceHillClimbing(TeamState teamState) throws IOException {
 
         // Just for Fun

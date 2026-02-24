@@ -1,7 +1,9 @@
 package localsearch;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import experiments.ExperimentLocalSearch;
 import objects.SwimmingClub;
@@ -159,6 +161,41 @@ public class LocalSearch {
             iterations++; // update Iterations
         }
         return currentState;
+    }
+
+    public static TeamState beamSearch(TeamState teamState, int k) {
+
+        List<TeamState> currentStates = teamState.createRandomStates(k);
+
+        TeamState currentBest = TeamState.getBestState(currentStates);
+
+        while (true) {
+            PriorityQueue<TeamState> maxHeap = new PriorityQueue<>(
+                    (a, b) -> Integer.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
+            for (TeamState c : currentStates) {
+                for (TeamState b : c.createTopKNeighbors(2)) {
+                    maxHeap.add(b);
+                }
+
+            }
+            List<TeamState> neighborsBest = new ArrayList<>();
+
+            // Bestes wird zuerst hinzugefuegt
+            TeamState best = maxHeap.poll();
+            neighborsBest.add(best);
+
+            for (int i = 1; i < k && !maxHeap.isEmpty(); i++) {
+                neighborsBest.add(maxHeap.poll()); // bestes Element holen
+            }
+
+            if (currentBest.getTotalPointsFast() >= best.getTotalPointsFast()) {
+                return currentBest;
+            } else {
+                currentStates = neighborsBest;
+                System.out.println(best.getTotalPointsFast());
+                currentBest = best;
+            }
+        }
     }
 
     public static TeamState SimulatedAnnealing(TeamState current, ExponentialSchedule schedule) {

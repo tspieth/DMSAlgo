@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.PriorityQueue;
 import java.util.function.Function;
 
 import experiments.ExperimentLocalSearch;
@@ -151,6 +152,17 @@ public class TeamState {
     // RandomLinupGenerator
     // =============================================================
 
+    // Methode for Random LocalBeamSearch
+    public List<TeamState> createRandomStates(int k) {
+        List<TeamState> randomStates = new ArrayList<>();
+        for (int i = 1; i <= k; i++) {
+            TeamState newRand = new TeamState(this);
+            newRand.newRandomLineUp();
+            randomStates.add(newRand);
+        }
+        return randomStates;
+    }
+
     /**
      * Generiert ein Zufälliges LineUp und ordnet es this.lineUp zu
      * 
@@ -229,6 +241,26 @@ public class TeamState {
     // =============================================================
     // Neighbor Creator Methodes
     // =============================================================
+
+    // Create Top K Neighbors
+    public List<TeamState> createTopKNeighbors(int k) {
+        PriorityQueue<TeamState> maxHeap = new PriorityQueue<>(
+                (a, b) -> Integer.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
+        for (int i = 0; i < this.order.length; i++) {
+            if (this.order[i][0] == -1 || this.order[i][0] == -2) {
+                continue; // No neighbor for breaks needed
+
+            }
+            maxHeap.addAll(createNeighborsForIndex(i));
+        }
+
+        List<TeamState> topKNeighors = new ArrayList<>();
+        for (int i = 0; i < k / 2 && !maxHeap.isEmpty(); i++) {
+            topKNeighors.add(maxHeap.poll()); // bestes Element holen
+        }
+        return topKNeighors;
+
+    }
 
     // Creates All Neighbors
     public List<TeamState> createAllNeighbors() {

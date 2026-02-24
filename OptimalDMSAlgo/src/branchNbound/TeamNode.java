@@ -21,29 +21,6 @@ import objects.SwimmingEvent;
  */
 public class TeamNode {
 
-    /**
-     * Innere Klasse zur Speicherung eines Event-Ergebnisses
-     * mit Schwimmer, Event und geholten Punkten
-     */
-    private static class EventResult implements Comparable<EventResult> {
-        Swimmer swimmer; // Der Schwimmer
-        int eventIndex; // Event-Index
-        int orderIndex; // Mögliche Position in der Order (-1 wenn multiple möglich)
-        int points; // Punkte für diese Zuweisung
-
-        EventResult(Swimmer swimmer, int eventIndex, int points) {
-            this.swimmer = swimmer;
-            this.eventIndex = eventIndex;
-            this.points = points;
-            this.orderIndex = -1; // wird später gesetzt wenn nötig
-        }
-
-        @Override
-        public int compareTo(EventResult other) {
-            return Integer.compare(other.points, this.points); // absteigend sortiert (beste zuerst)
-        }
-    }
-
     private boolean isMale;
     private int totalPoints = 0; // total points of the current team state
     private int[][] order; // safes Copy for GenderSpecific order from Competition
@@ -63,8 +40,6 @@ public class TeamNode {
     // if updated we need to know in every other Node
     // only Upates when this.isFull and lowerBound < this.totalPoints
     private int UpperBound = 0; // upperBound
-
-    private List<EventResult> sortedEventResults; // Alle Event-Ergebnisse global sortiert nach Punkten absteigend
 
     // =============================================================
     // Konstruktoren
@@ -196,8 +171,6 @@ public class TeamNode {
 
     // Maybe needs Check so it works reliable Lists in the Map have to be sorted
     public void createSimpleLead() {
-        // Sammle ALLE Event-Ergebnisse von ALLEN Schwimmern
-        List<EventResult> allResults = new ArrayList<>();
 
         for (Map.Entry<SwimmingEvent, List<Swimmer>> e : leaderboards.entrySet()) {
             int eventId = e.getKey().getIndex();
@@ -205,14 +178,11 @@ public class TeamNode {
             // Für jeden Schwimmer in diesem Event: erstelle ein EventResult
             for (Swimmer swimmer : e.getValue()) {
                 int points = swimmer.getPointsForEventIndex(eventId);
-                allResults.add(new EventResult(swimmer, eventId, points));
             }
         }
 
         // Sortiere ALLE Ergebnisse global nach Punkten (absteigend - beste zuerst)
-        allResults.sort(null);
 
-        this.sortedEventResults = allResults;
     }
 
     /**
@@ -252,35 +222,36 @@ public class TeamNode {
                 eventUsageCount[eventIndex]++;
             }
         }
-
-        // Gehe durch sortierte Liste (beste Ergebnisse zuerst)
-        for (EventResult result : sortedEventResults) {
-
-            // Prüfe ob dieses Event schon 2x verwendet wurde
-            if (eventUsageCount[result.eventIndex] >= 2) {
-                continue; // Dieses Event hat keine Plätze mehr
-            }
-
-            // Suche IRGENDEINE freie Position für diesen Event
-            for (int i = 0; i < order.length; i++) {
-                int eventIndex = order[i][0];
-
-                // Ist diese Position frei und für diesen Event?
-                if (eventIndex == result.eventIndex && !filledPosition[i]) {
-                    // Kann der Schwimmer diese Position schwimmen?
-                    if (result.swimmer.canChooseOrderIndex(i)) {
-                        // JA → Platziere es!
-                        filledPosition[i] = true;
-                        eventUsageCount[result.eventIndex]++;
-                        upper += result.points;
-                        break; // Gehe zum nächsten best EventResult
-                    }
-                }
-            }
-        }
-
-        this.UpperBound = upper;
-    }
+    /*
+     * // Gehe durch sortierte Liste (beste Ergebnisse zuerst)
+     * for () {
+     * 
+     * // Prüfe ob dieses Event schon 2x verwendet wurde
+     * if (eventUsageCount[result.eventIndex] >= 2) {
+     * continue; // Dieses Event hat keine Plätze mehr
+     * }
+     * 
+     * // Suche IRGENDEINE freie Position für diesen Event
+     * for (int i = 0; i < order.length; i++) {
+     * int eventIndex = order[i][0];
+     * 
+     * // Ist diese Position frei und für diesen Event?
+     * if (eventIndex == result.eventIndex && !filledPosition[i]) {
+     * // Kann der Schwimmer diese Position schwimmen?
+     * if (result.swimmer.canChooseOrderIndex(i)) {
+     * // JA → Platziere es!
+     * filledPosition[i] = true;
+     * eventUsageCount[result.eventIndex]++;
+     * upper += result.points;
+     * break; // Gehe zum nächsten best EventResult
+     * }
+     * }
+     * }
+     * }
+     * 
+     * this.UpperBound = upper;
+     * }
+     */
 
     // =============================================================
     // DFS Logic to Create Childs
