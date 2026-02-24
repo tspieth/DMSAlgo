@@ -421,6 +421,7 @@ public class TeamState {
         for (int i = 0; i < this.order.length; i++) {
             this.lineUp.put(i, null);
         }
+        this.totalPoints = 0;
     }
 
     // =============================================================
@@ -446,8 +447,8 @@ public class TeamState {
             Swimmer swimmer = lineUp.get(i);
             String swimmerName = swimmer != null ? swimmer.getName() : "No swimmer assigned";
             String gender = swimmer != null ? (swimmer.isMale() ? " (m)" : " (f)") : "";
-            int pointsForEvent = swimmer.getPointsForEvent(SwimmingEvent.values()[eventIndex]);
-            String breakTime = swimmer.toStringBreakBefore(i);
+            int pointsForEvent = swimmer != null ? swimmer.getPointsForEvent(SwimmingEvent.values()[eventIndex]) : 0;
+            String breakTime = swimmer != null ? swimmer.toStringBreakBefore(i) : "0";
             sb.append(String.format("%02d %5s: %-19s%s %04d %s%n", j,
                     SwimmingEvent.values()[eventIndex].getDisplayName(), swimmerName, gender, pointsForEvent,
                     breakTime));
