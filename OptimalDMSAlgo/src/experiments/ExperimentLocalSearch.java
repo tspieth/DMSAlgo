@@ -90,7 +90,7 @@ public class ExperimentLocalSearch {
         System.out.println("Experiment \"Local Beam Search\":");
         printProgressBar(0, countData);
 
-        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/local" + k + "Beam.csv", ";");
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/local" + k + "BeamEXTREM.csv", ";");
 
         /*
          * writingHeader()

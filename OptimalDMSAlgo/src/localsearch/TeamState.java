@@ -185,7 +185,6 @@ public class TeamState {
             System.out.println("Failed to generate a valid lineup after " + maxAttempts + " attempts.");
             return false;
         }
-        setEmptyLineup();
         return true;
     }
 
@@ -197,11 +196,13 @@ public class TeamState {
         for (int i = 0; i < this.order.length; i++) {
             Swimmer randomSwimmer = getRandomSwimmerForCompetition(i);
 
-            if ((randomSwimmer == null && order[i][0] != -1) &&
-                    order[i][0] != -2) {
-                // System.out.println("Es konnte kein Linup gebildet werden.");
-                return null;
-            }
+            /*
+             * if ((randomSwimmer == null && order[i][0] != -1) &&
+             * order[i][0] != -2) {
+             * // System.out.println("Es konnte kein Linup gebildet werden.");
+             * return null;
+             * }
+             */
             if (randomSwimmer != null) {
                 totalPoints += randomSwimmer.getPointsForOrderIndex(i);
             }
@@ -225,15 +226,21 @@ public class TeamState {
     }
 
     // Helper Method for getRandomSwimmerForEvent(int orderIndex)
+    // Erlaubt leere Slots mit gleicher Wahrscheinlichkeit wie jeden Schwimmer
     private Swimmer getRandomSwimmerForEvent(SwimmingEvent event, int orderIndex) {
         List<Swimmer> valid = leaderboards.get(event).stream()
                 .filter(s -> s.canChooseOrderIndex(orderIndex))
                 .toList();
 
-        if (valid.isEmpty())
-            return null;
+        // Anzahl der Optionen: valid.size() Schwimmer + 1 leerer Slot
+        int totalOptions = valid.size() + 1;
+        int randomIndex = ExperimentLocalSearch.rng.nextInt(totalOptions);
 
-        int randomIndex = ExperimentLocalSearch.rng.nextInt(valid.size());
+        // Wenn randomIndex == valid.size(), wähle leeren Slot (return null)
+        if (randomIndex == valid.size()) {
+            return null;
+        }
+
         Swimmer randomSwimmer = valid.get(randomIndex);
         randomSwimmer.chooseEvent(orderIndex);
         return randomSwimmer;

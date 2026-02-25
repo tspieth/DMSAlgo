@@ -7,11 +7,14 @@ import java.util.Stack;
 public class BranchNBound {
 
     private static TeamNode bestSolution = null; // Best solution node
+    private static List<TeamNode> conflictNodes = new ArrayList<>(); // Knoten mit Konflikten für intelligentes
+                                                                     // Backtracking
+    private static int conflictIndex = 0; // Index des aktuellen Konflikt-Knotens
 
     /**
      * Löst das Schwimmer-Zuordnungsproblem mit Branch-and-Bound
-     * Nutzt DFS mit Stack (speichereffizient) + greedy Kind-Sortierung (gutes
-     * Pruning)
+     * mit intelligentem Backtracking zu Konflikt-Knoten.
+     * Springt direkt zum ersten Knoten mit hasConflicts=true beim Backtracking.
      * 
      * @param root              Der initiale TeamNode (leeres LineUp)
      * @param initialLowerBound Initiale untere Schranke
@@ -21,6 +24,8 @@ public class BranchNBound {
 
         TeamNode.lowerBound = initialLowerBound;
         bestSolution = null;
+        conflictNodes.clear();
+        conflictIndex = 0;
 
         // Stack für DFS (speichereffizient - nur einen Pfad im Speicher)
         Stack<TeamNode> stack = new Stack<>();
@@ -36,11 +41,18 @@ public class BranchNBound {
             // Pruning: Wenn Upper Bound < Lower Bound, überspringen
             if (current.getUpperBound() < TeamNode.lowerBound) {
                 nodesPruned++;
+                // Beim Backtracking: Springe zum nächsten Konflikt-Knoten
+                if (hasUnexploredConflicts()) {
+                    TeamNode nextConflict = getNextConflictNode();
+                    if (nextConflict != null) {
+                        stack.push(nextConflict);
+                    }
+                }
                 continue;
             }
 
             // Prüfe ob Lösung vollständig ist
-            if (isComplete(current)) {
+            if (current.isComplete()) {
                 // Neue beste Lösung gefunden
                 if (current.getTotalPoints() > TeamNode.lowerBound) {
                     TeamNode.lowerBound = current.getTotalPoints();
@@ -48,44 +60,76 @@ public class BranchNBound {
                     System.out.println(current.toStringLineUp());
                     System.out.println("Bessere Lösung gefunden: " + TeamNode.lowerBound);
                 }
-            } else {
-                // Sammle ALLE möglichen Kindknoten
-                List<TeamNode> children = new ArrayList<>();
-                TeamNode child = current.nextChildNode();
-                while (child != null) {
-                    nodesExplored++;
-                    children.add(child);
-                    child = current.nextChildNode();
+                // Nach kompletter Lösung zum nächsten Konflikt-Knoten springen, falls vorhanden
+                if (hasUnexploredConflicts()) {
+                    TeamNode nextConflict = getNextConflictNode();
+                    if (nextConflict != null) {
+                        stack.push(nextConflict);
+                    }
                 }
+            } else {
+                // Generiere nächsten Team-Knoten
+                TeamNode nextNode = current.nextTeamNode();
 
-                // Sortiere nach Upper Bound (höchste zuerst)
-                // Dadurch werden gute Pfade zuerst erforscht → früher bessere Lösungen →
-                // besseres Pruning
-                children.sort((a, b) -> Integer.compare(b.getUpperBound(), a.getUpperBound()));
+                nodesExplored++;
 
-                // Pushe in umgekehrter Reihenfolge (damit beste zuerst gepoppt wird)
-                for (int i = children.size() - 1; i >= 0; i--) {
-                    if (children.get(i).getUpperBound() < TeamNode.lowerBound) {
-                        nodesPruned++;
+                if (nextNode != null) {
+                    // Speichere Knoten mit Konflikten für intelligentes Backtracking
+                    if (current.hasConflicts()) {
+                        if (!conflictNodes.contains(current)) {
+                            conflictNodes.add(current);
+                        }
+                    }
+
+                    // Prüfe ob neuer Knoten gepruned wird
+                    if (nextNode.getUpperBound() >= TeamNode.lowerBound) {
+                        stack.push(nextNode);
                     } else {
-                        stack.push(children.get(i));
+                        nodesPruned++;
+                        // Beim Pruning: Springe zum nächsten Konflikt-Knoten
+                        if (hasUnexploredConflicts()) {
+                            TeamNode nextConflict = getNextConflictNode();
+                            if (nextConflict != null) {
+                                stack.push(nextConflict);
+                            }
+                        }
+                    }
+                } else {
+                    // nextTeamNode() hat null zurückgegeben - Backtracking nötig
+                    // Springe zum nächsten Konflikt-Knoten
+                    if (hasUnexploredConflicts()) {
+                        TeamNode nextConflict = getNextConflictNode();
+                        if (nextConflict != null) {
+                            stack.push(nextConflict);
+                        }
                     }
                 }
             }
         }
 
         System.out.println("Knoten exploriert: " + nodesExplored + ", Knoten gepruned: " + nodesPruned);
+        System.out.println("Konflikt-Knoten analyzed: " + conflictNodes.size());
 
         return bestSolution;
     }
 
     /**
-     * Prüft ob ein TeamNode eine vollständige Lösung ist
-     * (alle LineUp-Spots gefüllt)
+     * Prüft ob es noch unerforschte Konflikt-Knoten gibt
      */
-    private static boolean isComplete(TeamNode node) {
-        // Vereinfachte Prüfung: getNextLineUpSpot() gibt -1 zurück wenn fertig
-        return node.getNextLineUpSpot() < 0;
+    private static boolean hasUnexploredConflicts() {
+        return conflictIndex < conflictNodes.size();
+    }
+
+    /**
+     * Gibt den nächsten Konflikt-Knoten zurück und inkrementiert den Index
+     */
+    private static TeamNode getNextConflictNode() {
+        if (hasUnexploredConflicts()) {
+            TeamNode nextConflict = conflictNodes.get(conflictIndex);
+            conflictIndex++;
+            return nextConflict;
+        }
+        return null;
     }
 
 }

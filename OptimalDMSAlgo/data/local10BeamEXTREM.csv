@@ -1,0 +1,7 @@
+variant;run;score;time_ms;iterations;states
+beamSearch;1;23134;40869.047;0.0;0
+beamSearch;2;23215;42712.910;0.0;0
+beamSearch;3;23284;44792.415;0.0;0
+beamSearch;4;23076;41504.485;0.0;0
+beamSearch;5;23263;43575.930;0.0;0
+beamSearch;6;23236;41864.346;0.0;0

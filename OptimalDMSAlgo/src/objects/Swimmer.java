@@ -108,6 +108,10 @@ public class Swimmer {
         return this.countChoosenEvents;
     }
 
+    public int[] getPointsArr() {
+        return this.points;
+    }
+
     /**
      * Gibt die Punkte für ein bestimmtes Event zurück.
      * 

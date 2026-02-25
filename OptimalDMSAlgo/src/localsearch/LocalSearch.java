@@ -29,8 +29,6 @@ public class LocalSearch {
         statesCreated = 0; // reset statesCreated
         iterations = 0; // reset avgIterations
 
-        currentState.setEmptyLineup();
-
         while (true) {
 
             List<TeamState> neighbors = currentState.createAllNeighbors();
@@ -173,12 +171,12 @@ public class LocalSearch {
             PriorityQueue<TeamState> maxHeap = new PriorityQueue<>(
                     (a, b) -> Integer.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
             for (TeamState c : currentStates) {
-                /*
-                 * for (TeamState b : c.createTopKNeighbors(5)) {
-                 * maxHeap.add(b);
-                 * }
-                 */
-                maxHeap.add(TeamState.getBestState(c.createAllNeighbors()));
+
+                for (TeamState b : c.createTopKNeighbors(500)) {
+                    maxHeap.add(b);
+                }
+
+                // maxHeap.add(TeamState.getBestState(c.createAllNeighbors()));
 
             }
             List<TeamState> neighborsBest = new ArrayList<>();
