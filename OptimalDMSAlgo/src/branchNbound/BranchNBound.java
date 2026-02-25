@@ -45,6 +45,7 @@ public class BranchNBound {
                 if (hasUnexploredConflicts()) {
                     TeamNode nextConflict = getNextConflictNode();
                     if (nextConflict != null) {
+                        nextConflict.fixConflicts();
                         stack.push(nextConflict);
                     }
                 }
@@ -64,6 +65,7 @@ public class BranchNBound {
                 if (hasUnexploredConflicts()) {
                     TeamNode nextConflict = getNextConflictNode();
                     if (nextConflict != null) {
+                        nextConflict.fixConflicts();
                         stack.push(nextConflict);
                     }
                 }
@@ -90,6 +92,7 @@ public class BranchNBound {
                         if (hasUnexploredConflicts()) {
                             TeamNode nextConflict = getNextConflictNode();
                             if (nextConflict != null) {
+                                nextConflict.fixConflicts();
                                 stack.push(nextConflict);
                             }
                         }
@@ -100,6 +103,7 @@ public class BranchNBound {
                     if (hasUnexploredConflicts()) {
                         TeamNode nextConflict = getNextConflictNode();
                         if (nextConflict != null) {
+                            nextConflict.fixConflicts();
                             stack.push(nextConflict);
                         }
                     }
