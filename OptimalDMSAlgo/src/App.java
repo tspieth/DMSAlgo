@@ -27,7 +27,7 @@ public class App {
         int[][] orderFemale = CSVReader.getEventOrder("OptimalDMSAlgo/resources/order.csv", false);
         Competition.setOrder(orderFemale, false);
 
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/betterClub.csv");
+        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/first7BetterClub.csv");
 
         SwimmingClub club = new SwimmingClub(schwimmerListe);
         for (Swimmer schwimmer : club.getAllSwimmer()) {
@@ -36,15 +36,18 @@ public class App {
         club.generateLeaderboards();
 
         System.out.println(club.toStringLeaderboards(5, true));
-        // TeamState teamState = new TeamState(club, true);
+        TeamState teamState = new TeamState(club, true);
 
         TeamNode.setAvailableSwimmer(club, true);
         TeamNode.setGlobalLeaderboard();
-        TeamNode.toStringGlobalLead();
+        // TeamNode.toStringGlobalLead();
 
         TeamNode root = new TeamNode(club, true);
 
-        BranchNBound.knapSackSolver(root, 0);
+        TeamState best = LocalSearch.hillClimbing(teamState);
+
+        // System.out.println(best.toStringLineUp());
+        // BranchNBound.knapSackSolver(root, 0);
 
         // ===================
         // Experiment Calls

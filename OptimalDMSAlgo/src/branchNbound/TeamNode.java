@@ -82,6 +82,9 @@ public class TeamNode {
         // Wenn wir nicht den Nächstbesten Nehmen können wählen wir einfach den nächsten
         // der Geht
         // Wir merken und nur den Conflict vom nächsbesten wenns nicht ging
+        if (nextLeadIndex >= globalLead.size()) {
+            return null;
+        }
         LeaderBoardEntry nextBest = globalLead.get(nextLeadIndex);
 
         // Determine if we can insert nextBestSwimmer
@@ -152,7 +155,16 @@ public class TeamNode {
     }
 
     // returns first Index where we can Insert -1 if eventIsFull
+    // Hier muss ein sonderfall für 1500 und 800 rein
     public int whereInsert(int eventIndex) {
+        if (eventIndex == SwimmingEvent.FREESTYLE_800.getIndex() ||
+                eventIndex == SwimmingEvent.FREESTYLE_1500.getIndex()) {
+            if (currentLineUp[eventIndex][0] == -1) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
         if (currentLineUp[eventIndex][0] == -1) {
             return 0;
         }
@@ -192,7 +204,9 @@ public class TeamNode {
         int upper = this.totalPoints;
 
         for (int i = 1; i <= this.emptySpotsLeft; i++) {
-            upper += globalLead.get(tempNext).getPoints();
+            if (tempNext < globalLead.size()) {
+                upper += globalLead.get(tempNext).getPoints();
+            }
             tempNext++;
         }
         return upper;
@@ -263,17 +277,27 @@ public class TeamNode {
         this.currentLineUp[eventIndex][pos] = -1;
     }
 
+    // Exception for 800/1500F
     public void emptyOneEventSlot(int eventID) {
+
         Swimmer a = allSwimmer.get(currentLineUp[eventID][0]);
-        Swimmer b = allSwimmer.get(currentLineUp[eventID][1]);
-        int pointsA = a.getPointsForEventIndex(eventID);
-        int pointsB = b.getPointsForEventIndex(eventID);
-        if (pointsA < pointsB) {
+
+        if (eventID == SwimmingEvent.FREESTYLE_800.getIndex() ||
+                eventID == SwimmingEvent.FREESTYLE_1500.getIndex()) {
             this.currentLineUp[eventID][0] = -1;
-            this.totalPoints -= pointsA;
+            this.totalPoints -= a.getPointsForEventIndex(eventID);
         } else {
-            this.currentLineUp[eventID][1] = -1;
-            this.totalPoints -= pointsB;
+
+            Swimmer b = allSwimmer.get(currentLineUp[eventID][1]);
+            int pointsA = a.getPointsForEventIndex(eventID);
+            int pointsB = b.getPointsForEventIndex(eventID);
+            if (pointsA < pointsB) {
+                this.currentLineUp[eventID][0] = -1;
+                this.totalPoints -= pointsA;
+            } else {
+                this.currentLineUp[eventID][1] = -1;
+                this.totalPoints -= pointsB;
+            }
         }
     }
 
