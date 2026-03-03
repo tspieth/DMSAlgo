@@ -21,29 +21,51 @@ import java.util.Map;
 public class SwimmingClub {
 
     private List<Swimmer> swimmers;
-    private List<Swimmer> teamSwimmer; // contains the swimmers that are currently in the competition, used to
-                                       // calculate points
+    private String clubName;
+
+    private Map<Integer, Swimmer> rowNumberToSwimmer = new HashMap<Integer, Swimmer>();
+
     private Map<SwimmingEvent, List<Swimmer>> leaderboardsMale = new HashMap<SwimmingEvent, List<Swimmer>>();
     private Map<SwimmingEvent, List<Swimmer>> leaderboardsFemale = new HashMap<SwimmingEvent, List<Swimmer>>();
+
+    // =============================================================
+    // Konstruktoren
+    // =============================================================
 
     public SwimmingClub(List<Swimmer> swimmers) {
         this.swimmers = swimmers;
         generateLeaderboards();
     }
 
-    public void addSwimmerToTeam(Swimmer swimmer) {
-        if (swimmers.contains(swimmer) && !teamSwimmer.contains(swimmer)) {
-            teamSwimmer.add(swimmer); // adds a swimmer to the team if they are in the swimmers list and not already
-                                      // in the team
-        }
+    public SwimmingClub(String clubName, List<Swimmer> swimmers) {
+        this.swimmers = swimmers;
+        this.clubName = clubName;
+        generateLeaderboards();
     }
 
-    public void addMultipleSwimmersToTeam(List<Swimmer> swimmersToAdd) {
-        for (Swimmer swimmer : swimmersToAdd) {
-            addSwimmerToTeam(swimmer); // adds multiple swimmers to the team using the addSwimmerToTeam method
+    // =============================================================
+    // Getter
+    // =============================================================
 
-        }
+    public Map<SwimmingEvent, List<Swimmer>> getLeaderboards(boolean isMale) {
+        return isMale ? leaderboardsMale : leaderboardsFemale;
     }
+
+    public List<Swimmer> getAllSwimmer() {
+        return swimmers;
+    }
+
+    public String getClubName() {
+        return this.clubName;
+    }
+
+    public Map<Integer, Swimmer> getRowNumberToSwimmer() {
+        return this.rowNumberToSwimmer;
+    }
+
+    // =============================================================
+    // Creater/Generator
+    // =============================================================
 
     public void generateLeaderboards(boolean isMale) {
         for (SwimmingEvent event : SwimmingEvent.values()) {
@@ -64,21 +86,131 @@ public class SwimmingClub {
         generateLeaderboards(false);
     }
 
-    public Map<SwimmingEvent, List<Swimmer>> getLeaderboards(boolean isMale) {
-        return isMale ? leaderboardsMale : leaderboardsFemale;
-    }
+    public double[][] createMatrixForSimplex(boolean isMale) {
 
-    public int getTotalPoints() {
-        int totalPoints = 0;
-        for (Swimmer swimmer : teamSwimmer) {
-            totalPoints += swimmer.getTotalPoints(); // adds the total points of each swimmer to the total
+        List<Swimmer> allfromGender = this.swimmers.stream().filter(s -> s.isMale() == isMale).toList();
+
+        double[][] pointMatrix = new double[allfromGender.size()][SwimmingEvent.values().length * 2 - 2];
+
+        int pos = 0;
+        for (Swimmer s : allfromGender) {
+            this.rowNumberToSwimmer.put(pos, s);
+            int[] points = s.getPointsArr();
+            double[] rowForMatrix = new double[SwimmingEvent.values().length * 2 - 2];
+            int sectionLength = points.length - 1;
+            for (int i = 0; i < points.length; i++) {
+                switch (SwimmingEvent.values()[i].getDisplayName()) {
+                    case "100Lg":
+                        rowForMatrix[0] = points[i];
+                        rowForMatrix[0 + sectionLength] = points[i];
+
+                        break;
+                    case "200K":
+                        rowForMatrix[1] = points[i];
+                        rowForMatrix[1 + sectionLength] = points[i];
+
+                        break;
+                    case "100B":
+                        rowForMatrix[2] = points[i];
+                        rowForMatrix[2 + sectionLength] = points[i];
+
+                        break;
+                    case "200R":
+                        rowForMatrix[3] = points[i];
+                        rowForMatrix[3 + sectionLength] = points[i];
+
+                        break;
+                    case "100S":
+                        rowForMatrix[4] = points[i];
+                        rowForMatrix[4 + sectionLength] = points[i];
+
+                        break;
+                    case "50B":
+                        rowForMatrix[5] = points[i];
+                        rowForMatrix[5 + sectionLength] = points[i];
+
+                        break;
+                    case "200Lg":
+                        rowForMatrix[6] = points[i];
+                        rowForMatrix[6 + sectionLength] = points[i];
+
+                        break;
+                    case "1500K":
+                        if (isMale) {
+                            rowForMatrix[7] = points[i];
+                        } else {
+                            rowForMatrix[7 + sectionLength] = points[i];
+                        }
+
+                        break;
+                    case "800K":
+                        if (isMale) {
+                            rowForMatrix[7 + sectionLength] = points[i];
+                        } else {
+                            rowForMatrix[7] = points[i];
+                        }
+                        break;
+                    case "50S":
+                        rowForMatrix[8] = points[i];
+                        rowForMatrix[8 + sectionLength] = points[i];
+
+                        break;
+                    case "200B":
+                        rowForMatrix[9] = points[i];
+                        rowForMatrix[9 + sectionLength] = points[i];
+
+                        break;
+                    case "100R":
+                        rowForMatrix[10] = points[i];
+                        rowForMatrix[10 + sectionLength] = points[i];
+
+                        break;
+                    case "200S":
+                        rowForMatrix[11] = points[i];
+                        rowForMatrix[11 + sectionLength] = points[i];
+
+                        break;
+                    case "50K":
+                        rowForMatrix[12] = points[i];
+                        rowForMatrix[12 + sectionLength] = points[i];
+
+                        break;
+                    case "400Lg":
+                        rowForMatrix[13] = points[i];
+                        rowForMatrix[13 + sectionLength] = points[i];
+
+                        break;
+                    case "50R":
+                        rowForMatrix[14] = points[i];
+                        rowForMatrix[14 + sectionLength] = points[i];
+
+                        break;
+                    case "400K":
+                        rowForMatrix[15] = points[i];
+                        rowForMatrix[15 + sectionLength] = points[i];
+
+                        break;
+                    case "100K":
+                        rowForMatrix[16] = points[i];
+                        rowForMatrix[16 + sectionLength] = points[i];
+
+                        break;
+                    default:
+                        System.out.println("Should not be reached");
+                        break;
+                }
+            }
+            pointMatrix[pos] = rowForMatrix;
+            pos++;
+
         }
-        return totalPoints;
+        return pointMatrix;
+
     }
 
-    public List<Swimmer> getAllSwimmer() {
-        return swimmers;
-    }
+    // =============================================================
+    // toString() Methodes
+    // =============================================================
 
     public String toStringLeaderboard(int topN, SwimmingEvent event, boolean isMale) {
         StringBuilder sb = new StringBuilder();
@@ -110,5 +242,31 @@ public class SwimmingClub {
         }
         return sb.toString();
     }
+
+    // DEPRECATED
+    // public void addSwimmerToTeam(Swimmer swimmer) {
+    // if (swimmers.contains(swimmer) && !teamSwimmer.contains(swimmer)) {
+    // teamSwimmer.add(swimmer); // adds a swimmer to the team if they are in the
+    // swimmers list and not already
+    // // in the team
+    // }
+    // }
+
+    // public void addMultipleSwimmersToTeam(List<Swimmer> swimmersToAdd) {
+    // for (Swimmer swimmer : swimmersToAdd) {
+    // addSwimmerToTeam(swimmer); // adds multiple swimmers to the team using the
+    // addSwimmerToTeam method
+
+    // }
+    // }
+    //
+    // public int getTotalPoints() {
+    // int totalPoints = 0;
+    // for (Swimmer swimmer : teamSwimmer) {
+    // totalPoints += swimmer.getTotalPoints(); // adds the total points of each
+    // swimmer to the total
+    // }
+    // return totalPoints;
+    // }
 
 }

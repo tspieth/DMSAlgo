@@ -36,7 +36,7 @@ public class TeamNode {
     // conflict[0] = -2
     // conlict[1] = eventID
 
-    private int emptySpotsLeft = SwimmingEvent.values().length * 2;
+    private int emptySpotsLeft = SwimmingEvent.values().length * 2 - 2;
     private int totalPoints = 0;
     private int nextLeadIndex = 0;
 
@@ -52,7 +52,7 @@ public class TeamNode {
             currentLineUp[i][0] = -1;
             currentLineUp[i][1] = -1;
         }
-        this.emptySpotsLeft = SwimmingEvent.values().length * 2;
+        this.emptySpotsLeft = SwimmingEvent.values().length * 2 - 2;
         this.totalPoints = 0;
         this.nextLeadIndex = 0;
     }
@@ -200,7 +200,7 @@ public class TeamNode {
     // Easy version could be Optimized with looking at individual free Spots left in
     // the event
     public int getUpperBound() {
-        int tempNext = this.nextLeadIndex;
+        int tempNext = this.nextLeadIndex + 1;
         int upper = this.totalPoints;
 
         for (int i = 1; i <= this.emptySpotsLeft; i++) {
@@ -231,11 +231,14 @@ public class TeamNode {
             // To Much eventsConflict
             if (conflictSet[i][0] == -1) {
                 this.removeWorstSwimmerID(nextBest.getSchwimmer().getID());
+                // System.out.println("TO MUCH EVENTS CONLFICT");
             }
             if (conflictSet[i][0] == -2) {
                 this.emptyOneEventSlot(conflictSet[i][1]);
+                // System.out.println("EVENT FULL CONFLICT");
             }
         }
+        this.hasConflicts = false;
         return true;
     }
 
@@ -275,6 +278,8 @@ public class TeamNode {
         this.totalPoints -= minPoints;
         // Als frei Kennzeichnen
         this.currentLineUp[eventIndex][pos] = -1;
+        this.emptySpotsLeft += 1;
+
     }
 
     // Exception for 800/1500F
@@ -286,6 +291,7 @@ public class TeamNode {
                 eventID == SwimmingEvent.FREESTYLE_1500.getIndex()) {
             this.currentLineUp[eventID][0] = -1;
             this.totalPoints -= a.getPointsForEventIndex(eventID);
+            this.emptySpotsLeft += 1;
         } else {
 
             Swimmer b = allSwimmer.get(currentLineUp[eventID][1]);
@@ -294,9 +300,13 @@ public class TeamNode {
             if (pointsA < pointsB) {
                 this.currentLineUp[eventID][0] = -1;
                 this.totalPoints -= pointsA;
+                this.emptySpotsLeft += 1;
+
             } else {
                 this.currentLineUp[eventID][1] = -1;
                 this.totalPoints -= pointsB;
+                this.emptySpotsLeft += 1;
+
             }
         }
     }
@@ -305,12 +315,17 @@ public class TeamNode {
     // GETTER METHODEN
     // =============================================================
 
+    public int getEmptySpotsLeft() {
+        return this.emptySpotsLeft;
+    }
+
     public int getTotalPoints() {
         return this.totalPoints;
     }
 
     public String toStringLineUp() {
         StringBuilder sb = new StringBuilder();
+        sb.append("Current LineUp\n");
         for (int i = 0; i < currentLineUp.length; i++) {
             sb.append("Event ").append(SwimmingEvent.values()[i].getDisplayName()).append(": \n");
             if (currentLineUp[i][0] != -1) {

@@ -6,6 +6,10 @@ import branchNbound.BranchNBound;
 import branchNbound.TeamNode;
 import experiments.ExperimentLocalSearch;
 import io.CSVReader;
+import linearProgramming.LinearProgramming;
+import linearProgramming.Constraints;
+import linearProgramming.Solution;
+import linearProgramming.SwimModel;
 import localsearch.LocalSearch;
 import localsearch.TeamState;
 import objects.Competition;
@@ -27,7 +31,11 @@ public class App {
         int[][] orderFemale = CSVReader.getEventOrder("OptimalDMSAlgo/resources/order.csv", false);
         Competition.setOrder(orderFemale, false);
 
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/first7BetterClub.csv");
+        Competition.setSimpleOrder();
+        Competition.setSimpleOrderMale();
+        Competition.setSimpleOrderFemale();
+
+        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/Duesseldorf_Old.csv");
 
         SwimmingClub club = new SwimmingClub(schwimmerListe);
         for (Swimmer schwimmer : club.getAllSwimmer()) {
@@ -35,35 +43,54 @@ public class App {
         }
         club.generateLeaderboards();
 
-        System.out.println(club.toStringLeaderboards(5, true));
-        TeamState teamState = new TeamState(club, true);
+        // System.out.println(club.toStringLeaderboards(7, false));
+        // TeamState teamState = new TeamState(club, false);
+        // System.out.println(teamState.toStringShavedLeaderboards());
 
-        TeamNode.setAvailableSwimmer(club, true);
-        TeamNode.setGlobalLeaderboard();
+        System.out.println(LinearProgramming.toStringsimplexXBnB(club, false, 3));
+        // TeamNode.setAvailableSwimmer(club, true);
+        // TeamNode.setGlobalLeaderboard();
         // TeamNode.toStringGlobalLead();
 
-        TeamNode root = new TeamNode(club, true);
+        // TeamNode root = new TeamNode(club, true);
 
-        TeamState best = LocalSearch.hillClimbing(teamState);
+        // TeamState best = LocalSearch.hillClimbing(teamState);
 
-        // System.out.println(best.toStringLineUp());
+        /// System.out.println(best.toStringLineUp());
+        // long start = System.nanoTime();
         // BranchNBound.knapSackSolver(root, 0);
+        // long end = System.nanoTime();
 
-        // ===================
+        // double seconds = (end - start) / 1_000_000_000.0;
+
+        // System.out.println("Dauer: " + seconds + " s");
+
+        // double[][] L = club.createMatrixForSimplex(false);
+
+        // SwimModel model = new SwimModel(L.length, 1, L);
+        // Constraints base = SwimModel.buildBaseConstraints(model);
+
+        // Solution sol = LinearProgramming.branchAndBound(model, base);
+        // System.out.println("Best objective value = " + sol.bestValue);
+
+        // =========================
         // Experiment Calls
-        // ===================
+        // =========================
 
         // ExperimentLocalSearch.beamSearch(teamState, 500);
         // ExperimentLocalSearch.kRestartsFirstChoiceHillClimbing(100, teamState);
         // ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
-        // ExperimentLocalSearch.kRestartsHillClimbing(100000, teamState);
+        // ExperimentLocalSearch.kRestartsHillClimbinFast(1000, teamState);
         // ExperimentLocalSearch.simulatedAnnealingShavedN(teamState, 50);
         // ExperimentLocalSearch.simulatedAnnealing(teamState);
         // ExperimentLocalSearch.kSideStepsHillClimbing(2, teamState);
         // ExperimentLocalSearch.kSideStepsHillClimbing(20, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(50, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(5, teamState);
+        // ExperimentLocalSearch.standardHillClimbingFast(teamState);
+        // ExperimentLocalSearch.kRestartsHillClimbinFast(300, teamState);
         // ExperimentLocalSearch.standardHillClimbing(teamState);
+        // ExperimentLocalSearch.firstChoiceHillClimbingWithKSwaps(teamState, 5);
 
         /*
          * System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());

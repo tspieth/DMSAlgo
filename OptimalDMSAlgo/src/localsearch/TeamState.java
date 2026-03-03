@@ -18,18 +18,25 @@ import objects.SwimmingEvent;
 
 public class TeamState {
 
+    public static int shavedBy = 7;
+
     private boolean isMale;
     private int totalPoints = 0; // total points of the current team state
     private int[][] order; // safes Copy for GenderSpecific order from Competition
 
     // Probably only lineUp and availableSwimmers is really needed
     // Eventually relevant for efficiency
-
-    private List<Swimmer> availableSwimmers; // list of swimmers that are currently available
+    // private Map<Integer, Swimmer> swimmerMap; // Maps SwimmerID to Swimmer for
+    // easier acces.
+    private List<Swimmer> availableSwimmers;// list of swimmers that are currently available
+                                            // By Pidgeonhole-Priniple we Could only Take the first
+                                            // For each event reducing the amount of from n³⁴ to 7³⁴
 
     private Map<Integer, Swimmer> lineUp; // maps each Competition eventIndex to the swimmer that is currently assigned
 
     private Map<SwimmingEvent, List<Swimmer>> leaderboards; // leaderboard for every event
+
+    private Map<SwimmingEvent, List<Swimmer>> shavedLeaderBoard; // leaderboard with less entrys;
 
     // =============================================================
     // Konstruktoren
@@ -74,6 +81,13 @@ public class TeamState {
         // Filling Structures
         // **************************
 
+        // Deprecated For now Makes it Slower
+        // this.swimmerMap = new HashMap<Integer, Swimmer>();
+        // for (Swimmer s : tempAvailable) {
+        // Swimmer nex = copySwimmer.apply(s);
+        // this.swimmerMap.put(nex.getID(), nex);
+        // }
+
         this.availableSwimmers = new ArrayList<>();
         for (Swimmer s : tempAvailable) {
             this.availableSwimmers.add(copySwimmer.apply(s));
@@ -97,6 +111,7 @@ public class TeamState {
         if (!newRandomLineUp()) {
             System.out.println("ERROR RANDOM LINUP NOT FOUND IN 1000 TRYS");
         }
+        setShavedLeaderBoards(shavedBy);
     }
 
     /**
@@ -119,6 +134,12 @@ public class TeamState {
         Function<Swimmer, Swimmer> copySwimmer = s -> {
             return copies.computeIfAbsent(s, k -> new Swimmer(k));
         };
+
+        // Deprecated for now makes it slower
+        // this.swimmerMap = new HashMap<Integer, Swimmer>();
+        // for (Map.Entry<Integer, Swimmer> e : other.swimmerMap.entrySet()) {
+        // this.swimmerMap.put(e.getKey(), copySwimmer.apply(e.getValue()));
+        // }
 
         // availableSwimmers
         this.availableSwimmers = new ArrayList<>();
@@ -146,6 +167,9 @@ public class TeamState {
 
             this.leaderboards.put(e.getKey(), listCopy);
         }
+
+        setShavedLeaderBoards(shavedBy);
+
     }
 
     // =============================================================
@@ -313,6 +337,7 @@ public class TeamState {
     // MAYBE A little uneffective O(n) because we have to search through all
     // athletes
     // O(1) could be reachable
+    // MUST BE OPTIMIZED GROWS EXPONENTIAL
     public void swapAthletes(int orderIndex, int athleteID) {
         SwimmingEvent event = SwimmingEvent.values()[Competition.order[orderIndex][0]];
         Swimmer original = lineUp.get(Integer.valueOf(orderIndex));
@@ -335,6 +360,129 @@ public class TeamState {
             this.totalPoints += athlete.getPointsForEvent(event);
         }
 
+    }
+
+    // =============================================================
+    // Faster Neighbor Creator Methodes (only Top k from Event)
+    // =============================================================
+
+    // Creates All Neighbors
+    public List<TeamState> createAllNeighborsFast() {
+        List<TeamState> neighbors = new ArrayList<TeamState>();
+        for (int i = 0; i < this.order.length; i++) {
+            if (this.order[i][0] == -1 || this.order[i][0] == -2) {
+                continue; // No neighbor for breaks needed
+            }
+            neighbors.addAll(createNeighborsForIndexFast(i));
+        }
+        return neighbors;
+    }
+
+    // creates All Neighbors of a specific order Index
+    // eventIndex should be an available EVENT in class SwimmingEvent
+    public List<TeamState> createNeighborsForIndexFast(int orderIndex) {
+        List<TeamState> neighbors = new ArrayList<>();
+        int eventIndex = this.order[orderIndex][0];
+        SwimmingEvent event = SwimmingEvent.values()[eventIndex];
+
+        for (Swimmer swimmer : shavedLeaderBoard.get(event)) {
+            if (swimmer.canChooseOrderIndex(orderIndex)) {
+                TeamState neighbor = new TeamState(this);
+                neighbor.swapAthletes(orderIndex, swimmer.getID());
+                neighbors.add(neighbor);
+            }
+        }
+        return neighbors;
+    }
+
+    // MUST BE OPTIMIZED GROWS EXPONENTIAL BUT HASH MAP MAKES IT SLOWER
+    // public void swapAthletesFast(int orderIndex, int athleteID) {
+    // SwimmingEvent event =
+    // SwimmingEvent.values()[Competition.order[orderIndex][0]];
+    // Swimmer original = lineUp.get(Integer.valueOf(orderIndex));
+
+    // // prepped so empty Lineups can be used
+    // if (original != null) {
+    // original.removeEvent(orderIndex);
+    // this.totalPoints -= original.getPointsForEvent(event);
+    // }
+
+    // Swimmer athlete = this.swimmerMap.get(athleteID);
+
+    // if (athlete != null) {
+    // lineUp.put(orderIndex, athlete);
+    // athlete.chooseEvent(orderIndex);
+    // this.totalPoints += athlete.getPointsForEvent(event);
+    // }
+
+    // }
+
+    public TeamState firstBetterRandomNeighborkSwaps(int k) {
+        if (k <= 0) {
+            return null;
+        }
+
+        int orderCount = this.order.length;
+
+        // Array of possible moves
+        List<int[]> moves = new ArrayList<>();
+
+        for (int o = 0; o < orderCount; o++) {
+            if (this.order[o][0] < 0) {
+                continue; // This event is either a break or not for the gender;
+            }
+            SwimmingEvent event = SwimmingEvent.values()[order[o][0]];
+            int swimmerCount = shavedLeaderBoard.get(event).size();
+            for (int s = 0; s < swimmerCount; s++) {
+                moves.add(new int[] { o, s });
+            }
+        }
+
+        Collections.shuffle(moves, ExperimentLocalSearch.rng);
+
+        // Use recursive search up to depth k. The helper will try moves in the
+        // shuffled order and return the first found improving neighbor.
+        return findFirstBetterByDepthFast(this, moves, k, this.totalPoints);
+    }
+
+    // recursive helper: current = current state to expand, remainingSwaps = how
+    // many
+    // more swaps are allowed, baseline = original points to compare improvements
+    // against
+    private TeamState findFirstBetterByDepthFast(TeamState current, List<int[]> moves, int remainingSwaps,
+            int baseline) {
+        if (remainingSwaps <= 0) {
+            return null;
+        }
+
+        for (int[] m : moves) {
+            TeamState next = current.createNeighborFast(m[0], m[1]);
+            if (next == null) {
+                continue;
+            }
+            if (next.getTotalPointsFast() > baseline) {
+                return next;
+            }
+            TeamState deeper = findFirstBetterByDepthFast(next, moves, remainingSwaps - 1, baseline);
+            if (deeper != null) {
+                return deeper;
+            }
+        }
+        return null;
+    }
+
+    public TeamState createNeighborFast(int orderIndex, int swimmerIndex) {
+        TeamState neighbor = null;
+
+        SwimmingEvent event = SwimmingEvent.values()[order[orderIndex][0]];
+        Swimmer swimmer = shavedLeaderBoard.get(event).get(swimmerIndex);
+
+        if (swimmer.canChooseOrderIndex(orderIndex)) {
+            neighbor = new TeamState(this);
+            neighbor.swapAthletes(orderIndex, swimmer.getID());
+        }
+
+        return neighbor;
     }
 
     // =============================================================
@@ -431,6 +579,15 @@ public class TeamState {
         this.totalPoints = 0;
     }
 
+    public void setShavedLeaderBoards(int k) {
+        this.shavedLeaderBoard = new HashMap<SwimmingEvent, List<Swimmer>>();
+        for (SwimmingEvent event : SwimmingEvent.values()) {
+            List<Swimmer> swimmersForEvent = leaderboards.get(event);
+            swimmersForEvent = swimmersForEvent.subList(0, Math.min((k), swimmersForEvent.size()));
+            shavedLeaderBoard.put(event, swimmersForEvent);
+        }
+    }
+
     // =============================================================
     // toString() Methodes
     // =============================================================
@@ -507,6 +664,28 @@ public class TeamState {
                 .toList()) {
             sb.append(String.format("%-19s %04d%n", s.getName(), s.getTotalPoints()));
 
+        }
+        return sb.toString();
+    }
+
+    public String toStringShavedLeaderboard(SwimmingEvent event) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Leaderboard for ").append(event.getDisplayName()).append(this.isMale ? " (m)" : " (f)")
+                .append(":\n");
+        List<Swimmer> swimmersForEvent = shavedLeaderBoard.get(event);
+        for (int i = 0; i < swimmersForEvent.size(); i++) {
+            Swimmer swimmer = swimmersForEvent.get(i);
+            sb.append((i + 1)).append(". ").append(swimmer.getName()).append(" - ")
+                    .append(swimmer.getPointsForEvent(event)).append(" points\n");
+        }
+        return sb.toString();
+    }
+
+    public String toStringShavedLeaderboards() {
+        StringBuilder sb = new StringBuilder();
+        for (SwimmingEvent event : SwimmingEvent.values()) {
+            sb.append(toStringShavedLeaderboard(event)).append("\n");
+            sb.append("****************************\n");
         }
         return sb.toString();
     }

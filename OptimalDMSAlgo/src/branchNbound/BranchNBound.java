@@ -37,13 +37,16 @@ public class BranchNBound {
         while (!stack.isEmpty()) {
 
             TeamNode current = stack.pop();
+            // System.out.println(current.getEmptySpotsLeft());
 
+            // System.out.println(current.getUpperBound());
             // Pruning: Wenn Upper Bound < Lower Bound, überspringen
             if (current.getUpperBound() < TeamNode.lowerBound) {
                 nodesPruned++;
                 // Beim Backtracking: Springe zum nächsten Konflikt-Knoten
                 if (hasUnexploredConflicts()) {
                     TeamNode nextConflict = getNextConflictNode();
+                    // System.out.println("hey");
                     if (nextConflict != null) {
                         nextConflict.fixConflicts();
                         stack.push(nextConflict);
@@ -55,6 +58,7 @@ public class BranchNBound {
             // Prüfe ob Lösung vollständig ist
             if (current.isComplete()) {
                 // Neue beste Lösung gefunden
+                System.out.println(current.toStringLineUp());
                 if (current.getTotalPoints() > TeamNode.lowerBound) {
                     TeamNode.lowerBound = current.getTotalPoints();
                     bestSolution = current;

@@ -19,7 +19,7 @@ import java.util.Arrays;
  */
 
 public class Swimmer {
-    public static int nextId = 1; // static variable to keep track of the next available ID
+    public static int nextId = 0; // static variable to keep track of the next available ID
 
     public int id;
     private String name;
@@ -312,9 +312,13 @@ public class Swimmer {
 
     // For simplicity this methode supposes that the athlete starts in the last heat
     // of the last event he compeated in and in the first of the order index
+    // Needs Change Bug because of FEMALE EVENTS INDEX
     public boolean hasEnoughBreak(int orderIndex) {
         int currentIndex = orderIndex - 1;
         int currentBreakTime = 0;
+        if (currentIndex < 0) {
+            return true; // before first event no break is needed
+        }
         int eventIndex = Competition.order[currentIndex][0];
 
         for (; currentIndex >= 0; currentIndex--) {
@@ -383,7 +387,7 @@ public class Swimmer {
             if (order[i][0] == Competition.BREAK_MARKER && order[i][1] == Competition.BREAK_CODE) {
 
                 if (orderIndex < i) { // to Put event was in the last Abschnitt
-                    return (countEvents > maxEvents);
+                    return (countEvents >= maxEvents);
                 } else { // to Put event was not in the last Abschnitt
                     countEvents = 0;
                     continue;
@@ -393,7 +397,7 @@ public class Swimmer {
                 countEvents++;
             }
         }
-        return (countEvents > maxEvents); // Should work??
+        return (countEvents >= maxEvents); // Should work??
     }
 
     // =============================================================
@@ -495,6 +499,9 @@ public class Swimmer {
 
     public String toStringBreakBefore(int orderIndex) {
         int currentIndex = orderIndex - 1;
+        if (currentIndex == -1) {
+            return "Infinity";
+        }
         int currentBreakTime = 0;
         int eventIndex = Competition.order[currentIndex][0];
         for (; currentIndex >= 0; currentIndex--) {

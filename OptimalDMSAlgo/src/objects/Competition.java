@@ -33,6 +33,9 @@ public class Competition {
                                      // in this case orderMale[i][1] gives the duration of the event
     public static int[][] orderFemale; // same but orderMale[i][0] gives -2 if there is a female event
                                        // in this case orderMale[i][1] gives the duration of the event
+    public static int[] simpleOrder;
+    public static int[] simpleOrderFemale;
+    public static int[] simpleOrderMale;
 
     /**
      * Diese Methode Berechnet die Punkte basierend auf den BaseTimes
@@ -83,6 +86,61 @@ public class Competition {
             orderMale = order;
         } else {
             orderFemale = order;
+        }
+    }
+
+    // Set Order Array without breakes and events only once
+    public static void setSimpleOrder() {
+        int breaks = 0;
+        for (int i = 0; i < orderFemale.length; i++) {
+            if (orderFemale[i][0] < 0) {
+                breaks += 1;
+            }
+        }
+
+        simpleOrder = new int[orderFemale.length - breaks];
+
+        for (int i = 0, j = 0; i < simpleOrder.length;) {
+            if (orderFemale[j][0] == -1) {
+                j++;
+                continue;
+            }
+            if (orderFemale[j][0] == -2) {
+                System.out.println("SHOULDNT HAPPEN");
+            }
+
+            simpleOrder[i] = orderFemale[j][0];
+            i++;
+            j += 2;
+
+        }
+    }
+
+    public static void setSimpleOrderFemale() {
+        simpleOrderFemale = simpleOrder;
+    }
+
+    // Set Order Array without breakes and events only once
+    public static void setSimpleOrderMale() {
+        int breaks = 0;
+        for (int i = 0; i < orderMale.length; i++) {
+            if (orderMale[i][0] < 0) {
+                breaks += 1;
+            }
+        }
+
+        simpleOrderMale = new int[orderMale.length - breaks];
+
+        for (int i = 0, j = 1; i < simpleOrderMale.length;) {
+
+            if (orderMale[j][0] == -2) {
+                j++;
+            }
+
+            simpleOrderMale[i] = orderMale[j][0];
+            i++;
+            j += 2;
+
         }
     }
 
