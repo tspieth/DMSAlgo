@@ -146,6 +146,9 @@ public class Swimmer {
         return total;
     }
 
+    public double getTimeforEvent(SwimmingEvent event) {
+        return this.times[event.getIndex()];
+    }
     // =============================================================
     // Setter
     // =============================================================

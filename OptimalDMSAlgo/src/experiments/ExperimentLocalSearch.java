@@ -52,6 +52,7 @@ public class ExperimentLocalSearch {
 
             long start = System.nanoTime();
             TeamState best = LocalSearch.hillClimbing(teamState);
+            System.out.println(best.toStringLineUp());
             long end = System.nanoTime();
 
             long durationNs = end - start;
@@ -68,6 +69,10 @@ public class ExperimentLocalSearch {
              * standard;1;838;7239;30;145000
              */
             standardWriter.appendRow(Arrays.asList("standard", run, score, time_ms, iterations, states));
+
+            // Write bestState
+            CSVWriter lineupWriter = new CSVWriter("OptimalDMSAlgo/data/teams/standardHillTeam" + i + ".csv");
+            lineupWriter.writeLineUp(best);
 
             // Just for Fun
             // Update progress bar after finishing this run
@@ -349,6 +354,8 @@ public class ExperimentLocalSearch {
              */
             standardWriter.appendRow(Arrays.asList("firstChoiceSwaps", run, score, time_ms, iterations, states));
 
+            CSVWriter lineupWriter = new CSVWriter("OptimalDMSAlgo/data/teams/firstChoiceSwapTeam" + i + ".csv");
+            lineupWriter.writeLineUp(best);
             // Just for Fun
             // Update progress bar after finishing this run
             printProgressBar(i, countData);

@@ -560,6 +560,13 @@ public class TeamState {
         return null;
     }
 
+    public Map<Integer, Swimmer> getLineup() {
+        return this.lineUp;
+    }
+
+    public int[][] getOrder() {
+        return this.order;
+    }
     // =============================================================
     // Setter Methodes
     // =============================================================

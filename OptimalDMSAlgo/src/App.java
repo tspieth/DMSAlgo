@@ -44,10 +44,10 @@ public class App {
         club.generateLeaderboards();
 
         // System.out.println(club.toStringLeaderboards(7, false));
-        // TeamState teamState = new TeamState(club, false);
+        TeamState teamState = new TeamState(club, false);
         // System.out.println(teamState.toStringShavedLeaderboards());
 
-        System.out.println(LinearProgramming.toStringsimplexXBnB(club, false, 3));
+        // System.out.println(LinearProgramming.toStringsimplexXBnB(club, false, 3));
         // TeamNode.setAvailableSwimmer(club, true);
         // TeamNode.setGlobalLeaderboard();
         // TeamNode.toStringGlobalLead();
@@ -90,7 +90,7 @@ public class App {
         // ExperimentLocalSearch.standardHillClimbingFast(teamState);
         // ExperimentLocalSearch.kRestartsHillClimbinFast(300, teamState);
         // ExperimentLocalSearch.standardHillClimbing(teamState);
-        // ExperimentLocalSearch.firstChoiceHillClimbingWithKSwaps(teamState, 5);
+        ExperimentLocalSearch.firstChoiceHillClimbingWithKSwaps(teamState, 4);
 
         /*
          * System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());

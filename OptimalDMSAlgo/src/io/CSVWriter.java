@@ -6,7 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import localsearch.TeamState;
+import objects.Swimmer;
+import objects.SwimmingEvent;
 
 public class CSVWriter {
 
@@ -84,5 +90,119 @@ public class CSVWriter {
         }
 
         return value;
+    }
+
+    /**
+     * Writes a file containing the Lineup from a
+     * state
+     * 
+     * @param state
+     * @throws IOException
+     */
+    public void writeLineUp(TeamState state) throws IOException {
+        writeHeader(Arrays.asList("Schwimmart", "Name", "Zeit", "Punkte", "Name", "Zeit", "Punkte"));
+        Map<Integer, Swimmer> lineup = state.getLineup();
+
+        int[][] orderCopy = state.getOrder();
+        int lengthSec = 0;
+        for (int i = 0; i < orderCopy.length; i++) {
+            lengthSec++;
+            if (orderCopy[i][0] == -1) {
+                break;
+            }
+        }
+
+        int totalPoints1 = 0;
+        int totalPoints2 = 0;
+        for (int i = 0; i < lengthSec; i++) {
+            if (orderCopy[i][0] < 0) {
+                continue;
+            }
+            SwimmingEvent event = SwimmingEvent.values()[orderCopy[i][0]];
+            String eventName = event.getDisplayName();
+
+            Swimmer firstSec = lineup.get(i);
+            Swimmer secondSec = lineup.get(i + lengthSec);
+            if (firstSec == null) {
+                if (secondSec == null) {
+                    appendRow(Arrays.asList(event.getDisplayName(), "",
+                            "", "", "", "", ""));
+                } else {
+                    String name2 = secondSec.getName();
+                    double time2 = secondSec.getTimeforEvent(SwimmingEvent.FREESTYLE_800);
+                    int point2 = secondSec.getPointsForEvent(SwimmingEvent.FREESTYLE_800);
+
+                    appendRow(Arrays.asList(event.getDisplayName(), "", "", "", name2,
+                            Double.toString(time2), Integer.toString(point2)));
+                }
+                continue;
+            }
+            if (secondSec == null) {
+                String name1 = firstSec.getName();
+
+                double time1 = firstSec.getTimeforEvent(event);
+
+                int point1 = firstSec.getPointsForEvent(event);
+
+                appendRow(Arrays.asList(event
+                        .getDisplayName(), name1,
+                        Double.toString(time1), Integer.toString(point1), "", "", ""));
+                continue;
+            }
+
+            String name1 = firstSec.getName();
+            String name2 = secondSec.getName();
+
+            if (event.equals(SwimmingEvent.FREESTYLE_1500)) {
+                double time1 = firstSec.getTimeforEvent(event);
+                double time2 = secondSec.getTimeforEvent(SwimmingEvent.FREESTYLE_800);
+
+                int point1 = firstSec.getPointsForEvent(event);
+                int point2 = secondSec.getPointsForEvent(SwimmingEvent.FREESTYLE_800);
+
+                totalPoints1 += point1;
+                totalPoints2 += point2;
+
+                appendRow(Arrays.asList("1500K", name1,
+                        Double.toString(time1), Integer.toString(point1), "", "", ""));
+                appendRow(Arrays.asList("800K", "", "", "", name2,
+                        Double.toString(time2), Integer.toString(point2)));
+
+            } else if (event.equals(SwimmingEvent.FREESTYLE_800)) {
+                double time1 = firstSec.getTimeforEvent(event);
+                double time2 = secondSec.getTimeforEvent(SwimmingEvent.FREESTYLE_1500);
+
+                int point1 = firstSec.getPointsForEvent(event);
+                int point2 = secondSec.getPointsForEvent(SwimmingEvent.FREESTYLE_1500);
+
+                totalPoints1 += point1;
+                totalPoints2 += point2;
+
+                appendRow(Arrays.asList("800K", name1,
+                        Double.toString(time1), Integer.toString(point1), "", "", ""));
+                appendRow(Arrays.asList("1500K", "", "", "", name2,
+                        Double.toString(time2), Integer.toString(point2)));
+            } else {
+                double time1 = firstSec.getTimeforEvent(event);
+                double time2 = secondSec.getTimeforEvent(event);
+
+                int point1 = firstSec.getPointsForEvent(event);
+                int point2 = secondSec.getPointsForEvent(event);
+
+                totalPoints1 += point1;
+                totalPoints2 += point2;
+
+                appendRow(Arrays.asList(eventName, name1, Double.toString(
+                        time1), Integer.toString(point1), name2,
+                        Double.toString(time2), Integer.toString(point2)));
+
+            }
+
+        }
+        appendRow(Arrays.asList(
+                "", "", "Punkte Abs1",
+                Integer.toString(totalPoints1), "", "Punkte Abs2",
+                Integer.toString(totalPoints2)));
+        appendRow(Arrays.asList("Punkte Gesamt", "", "", "", "", "", Integer.toString(totalPoints1 + totalPoints2)));
     }
 }

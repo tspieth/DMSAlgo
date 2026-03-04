@@ -227,7 +227,7 @@ public class LinearProgramming {
 
         double[][] L = club.createMatrixForSimplex(isMale);
         SwimModel model = new SwimModel(L.length, pauseGap, L);
-        Constraints base = SwimModel.buildBaseConstraints(model);
+        Constraints base = Constraints.buildBaseConstraints(model);
 
         Solution sol = branchAndBound(model, base);
 
