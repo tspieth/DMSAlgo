@@ -1,1 +1,8 @@
 variant;run;score;time_ms;iterations;states
+firstChoiceSwaps;1;15544;92014.305;47.0;68216391
+firstChoiceSwaps;2;15585;173343.416;44.0;114186136
+firstChoiceSwaps;3;15585;150275.369;52.0;110349480
+firstChoiceSwaps;4;15585;112810.987;53.0;84560051
+firstChoiceSwaps;5;15585;134428.316;52.0;101245800
+firstChoiceSwaps;6;15585;92324.200;46.0;68647385
+firstChoiceSwaps;7;15561;96717.581;48.0;75464323

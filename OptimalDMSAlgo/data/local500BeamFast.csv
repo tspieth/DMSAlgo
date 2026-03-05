@@ -1,0 +1,14 @@
+variant;run;score;time_ms;iterations;states
+beamSearchFast;1;16958;3064.099;0.0;156658
+beamSearchFast;2;16848;1873.703;0.0;331731
+beamSearchFast;3;17008;1943.393;0.0;539895
+beamSearchFast;4;16795;1586.320;0.0;718973
+beamSearchFast;5;16989;1767.838;0.0;901890
+beamSearchFast;6;17055;2043.885;0.0;1134712
+beamSearchFast;7;17040;1526.784;0.0;1314309
+beamSearchFast;8;16872;1180.565;0.0;1455423
+beamSearchFast;9;16937;1248.926;0.0;1604394
+beamSearchFast;10;16923;1138.322;0.0;1734493
+beamSearchFast;11;16831;1679.730;0.0;1913488
+beamSearchFast;12;17033;2050.031;0.0;2135433
+beamSearchFast;13;16939;2038.997;0.0;2329879

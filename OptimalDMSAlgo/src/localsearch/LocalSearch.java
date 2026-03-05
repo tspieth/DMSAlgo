@@ -1,5 +1,6 @@
 package localsearch;
 
+import java.lang.management.GarbageCollectorMXBean;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +14,7 @@ public class LocalSearch {
     public static long statesCreated;
     public static int iterations;
     public static double avgIterations;
+    public static List<Integer> pointsDevelopment = new ArrayList<Integer>();
 
     /**
      * Standard HillClimbing from Lecture SPS at Universitiy of Mannheim
@@ -28,6 +30,7 @@ public class LocalSearch {
 
         statesCreated = 0; // reset statesCreated
         iterations = 0; // reset avgIterations
+        pointsDevelopment = new ArrayList<Integer>();
 
         while (true) {
 
@@ -37,7 +40,10 @@ public class LocalSearch {
 
             TeamState bestNeighbor = TeamState.getBestState(neighbors);
 
-            if (bestNeighbor.getTotalPointsFast() <= currentState.getTotalPointsFast()) {
+            int bestValue = bestNeighbor.getTotalPointsFast();
+            pointsDevelopment.add(bestValue);
+
+            if (bestValue <= currentState.getTotalPointsFast()) {
                 break;
             }
 
@@ -53,16 +59,19 @@ public class LocalSearch {
 
         statesCreated = 0; // reset statesCreated
         iterations = 0; // reset avgIterations
+        pointsDevelopment = new ArrayList<Integer>();
 
         while (true) {
 
-            // TeamState firstBetter = currentState.getFirstBetterRandomNeighbor();
-            TeamState firstBetter = currentState.getFirstBetterRandomNeighborkSwaps(3);
+            pointsDevelopment.add(currentState.getTotalPoints());
+
+            // States Created get Updated over TeamState
+            TeamState firstBetter = currentState.getFirstBetterRandomNeighbor();
 
             if (firstBetter == null) {
                 break; // no better neighbor was found
             }
-            System.out.println(firstBetter.getTotalPoints());
+
             currentState = firstBetter;
             iterations++; // update Iterations
         }
@@ -75,9 +84,13 @@ public class LocalSearch {
 
         statesCreated = 0; // reset statesCreated
         iterations = 0; // reset avgIterations
+        pointsDevelopment = new ArrayList<Integer>(); // So we can plot the internal Development
 
         while (true) {
 
+            pointsDevelopment.add(currentState.getTotalPoints());
+
+            // StatesCreated get Updated over TeamState
             TeamState firstBetter = currentState.firstBetterRandomNeighborkSwaps(k);
 
             if (firstBetter == null) {
@@ -193,7 +206,9 @@ public class LocalSearch {
                     (a, b) -> Integer.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
             for (TeamState c : currentStates) {
 
-                for (TeamState b : c.createTopKNeighbors(500)) {
+                List<TeamState> topNeigh = c.createTopKNeighbors(500);
+                statesCreated += topNeigh.size();
+                for (TeamState b : topNeigh) {
                     maxHeap.add(b);
                 }
 
@@ -236,7 +251,6 @@ public class LocalSearch {
             }
 
             TeamState next = current.getRandomNeighbor();
-            statesCreated += 3214; // just a aprox.
 
             int E = next.getTotalPointsFast() - current.getTotalPointsFast();
 
@@ -269,7 +283,6 @@ public class LocalSearch {
             }
 
             TeamState next = current.getRandomNeighborFromTopN(n);
-            statesCreated += 3214; // just a aprox.
 
             int E = next.getTotalPointsFast() - current.getTotalPointsFast();
 
@@ -308,6 +321,7 @@ public class LocalSearch {
 
         statesCreated = 0; // reset statesCreated
         iterations = 0; // reset avgIterations
+        pointsDevelopment = new ArrayList<Integer>();
 
         while (true) {
 
@@ -317,7 +331,10 @@ public class LocalSearch {
 
             TeamState bestNeighbor = TeamState.getBestState(neighbors);
 
-            if (bestNeighbor.getTotalPointsFast() <= currentState.getTotalPointsFast()) {
+            int bestValue = bestNeighbor.getTotalPointsFast();
+            pointsDevelopment.add(bestValue);
+
+            if (bestValue <= currentState.getTotalPointsFast()) {
                 break;
             }
 
@@ -333,13 +350,14 @@ public class LocalSearch {
         statesCreated = 0; // reset statesCreated
         iterations = 0; // reset from previoud runs
         avgIterations = 0; // reset avgIterations
+        int tempStatesCreated = 0;
 
         for (int i = 0; i < k; i++) {
 
             current.newRandomLineUp();
 
             allBest.add(hillClimbingFast(current));
-
+            tempStatesCreated += statesCreated;
             avgIterations += iterations;
 
         }
@@ -351,8 +369,54 @@ public class LocalSearch {
             }
         }
 
+        statesCreated = tempStatesCreated;
         avgIterations = avgIterations / (double) k; // calculate avgIterations
         return best;
+    }
+
+    public static TeamState beamSearchFast(TeamState teamState, int k) {
+
+        statesCreated = 0; // reset statesCreated
+        iterations = 0; // reset from previoud runs
+        avgIterations = 0; // reset avgIterations
+
+        List<TeamState> currentStates = teamState.createRandomStates(k);
+
+        TeamState currentBest = TeamState.getBestState(currentStates);
+
+        while (true) {
+            iterations++;
+            PriorityQueue<TeamState> maxHeap = new PriorityQueue<>(
+                    (a, b) -> Integer.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
+            for (TeamState c : currentStates) {
+
+                List<TeamState> topNeigh = c.createTopKNeighborsFast(2);
+                statesCreated += topNeigh.size();
+                for (TeamState b : topNeigh) {
+                    maxHeap.add(b);
+                }
+
+                // maxHeap.add(TeamState.getBestState(c.createAllNeighbors()));
+
+            }
+            List<TeamState> neighborsBest = new ArrayList<>();
+
+            // Bestes wird zuerst hinzugefuegt
+            TeamState best = maxHeap.poll();
+            neighborsBest.add(best);
+
+            for (int i = 1; i < k && !maxHeap.isEmpty(); i++) {
+                neighborsBest.add(maxHeap.poll()); // bestes Element holen
+            }
+
+            if (currentBest.getTotalPointsFast() >= best.getTotalPointsFast()) {
+                return currentBest;
+            } else {
+                currentStates = neighborsBest;
+                System.out.println(best.getTotalPointsFast());
+                currentBest = best;
+            }
+        }
     }
 
     /*

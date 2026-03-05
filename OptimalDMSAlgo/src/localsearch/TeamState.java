@@ -395,6 +395,25 @@ public class TeamState {
         return neighbors;
     }
 
+    // Create Top K Neighbors BUT Faster
+    public List<TeamState> createTopKNeighborsFast(int k) {
+        PriorityQueue<TeamState> maxHeap = new PriorityQueue<>(
+                (a, b) -> Integer.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
+        for (int i = 0; i < this.order.length; i++) {
+            if (this.order[i][0] == -1 || this.order[i][0] == -2) {
+                continue; // No neighbor for breaks needed
+
+            }
+            maxHeap.addAll(createNeighborsForIndexFast(i));
+        }
+
+        List<TeamState> topKNeighors = new ArrayList<>();
+        for (int i = 0; i < k / 2 && !maxHeap.isEmpty(); i++) {
+            topKNeighors.add(maxHeap.poll()); // bestes Element holen
+        }
+        return topKNeighors;
+
+    }
     // MUST BE OPTIMIZED GROWS EXPONENTIAL BUT HASH MAP MAKES IT SLOWER
     // public void swapAthletesFast(int orderIndex, int athleteID) {
     // SwimmingEvent event =
@@ -449,13 +468,19 @@ public class TeamState {
     // many
     // more swaps are allowed, baseline = original points to compare improvements
     // against
+    // ATTENTION IS NOT COMPLEATLY RANDOM
+    // GOES THROUGH BY DFS WHERE EACH LEVEL IS RANDOM
     private TeamState findFirstBetterByDepthFast(TeamState current, List<int[]> moves, int remainingSwaps,
             int baseline) {
         if (remainingSwaps <= 0) {
             return null;
         }
 
-        for (int[] m : moves) {
+        List<int[]> shuffledMoves = new ArrayList<>(moves);
+        Collections.shuffle(shuffledMoves, ExperimentLocalSearch.rng);
+
+        for (int[] m : shuffledMoves) {
+            LocalSearch.statesCreated++;
             TeamState next = current.createNeighborFast(m[0], m[1]);
             if (next == null) {
                 continue;
@@ -550,6 +575,8 @@ public class TeamState {
 
         for (int[] m : moves) {
             TeamState neighbor = createRandomNeighbor(m[0], m[1]);
+
+            LocalSearch.statesCreated++;
 
             // greedy auswertug verhindert hier nullPointer exceptions
             if (neighbor != null && neighbor.getTotalPointsFast() > this.totalPoints) {

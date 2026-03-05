@@ -1,0 +1,3 @@
+variant;run;score;time_ms;avg_iterations;states
+1000_RestartsFast;1;23357;179856.339;32.072;4053115
+1000_RestartsFast;2;23306;178847.106;32.009;4031085

@@ -87,122 +87,6 @@ public class ExperimentLocalSearch {
      * 
      * @param k
      */
-    public static void standardHillClimbingFast(TeamState teamState) throws IOException {
-
-        // Just for Fun
-        // Print initial progress bar (0%)
-        progressBarInitialized = false;
-        System.out.println("Experiment \"Standart Hill Climbing Fast\":");
-        printProgressBar(0, countData);
-
-        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHillFast.csv", ";");
-
-        /*
-         * writingHeader()
-         * variant,run,score,time_ms,iterations,states
-         */
-        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
-
-        for (int i = 0; i <= 3; i++) {
-            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
-        }
-
-        for (int i = 1; i <= countData; i++) {
-
-            teamState.newRandomLineUp(); // so runs dont give same outcome
-
-            long start = System.nanoTime();
-            TeamState best = LocalSearch.hillClimbingFast(teamState);
-            long end = System.nanoTime();
-
-            long durationNs = end - start;
-            double durationMs = durationNs / 1_000_000.0;
-
-            String run = Integer.toString(i);
-            String score = Integer.toString(best.getTotalPoints());
-            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
-            String iterations = Double.toString(LocalSearch.iterations);
-            String states = Long.toString(LocalSearch.statesCreated);
-
-            /*
-             * appendRow()
-             * standard;1;838;7239;30;145000
-             */
-            standardWriter.appendRow(Arrays.asList("standardFast", run, score, time_ms, iterations, states));
-
-            // Just for Fun
-            // Update progress bar after finishing this run
-            printProgressBar(i, countData);
-        }
-    }
-
-    /**
-     * Startet k-Restart-Hill-Climbing k Mal und erstellt ein .csv Datei im
-     * Verzeichnis:
-     * OptimalDMSAlgo/data
-     * 
-     * @param k
-     */
-    public static void kRestartsHillClimbinFast(int k, TeamState teamState) throws IOException {
-
-        // Just for Fun
-        // Print initial progress bar (0%)
-        progressBarInitialized = false;
-        System.out.println("Experiment \"" + k + "-Restarts Hill Climbing Fast\":");
-        printProgressBar(0, ExperimentLocalSearch.countData);
-
-        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/" + k + "_RestartsHillFast.csv", ";");
-
-        /*
-         * writingHeader()
-         * variant,run,score,time_ms,avg_iterations,states
-         */
-        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "avg_iterations", "states"));
-
-        for (int i = 0; i <= 3; i++) {
-            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
-        }
-
-        for (int i = 1; i <= ExperimentLocalSearch.countData; i++) {
-
-            teamState.newRandomLineUp(); // so runs dont give same outcome
-
-            long start = System.nanoTime();
-            TeamState best = LocalSearch.hillClimbingWithKStartsFast(teamState, k);
-            System.out.println(best.toStringTeamSwimmers());
-            System.out.println(best.toStringLineUp());
-            long end = System.nanoTime();
-
-            long durationNs = end - start;
-            double durationMs = durationNs / 1_000_000.0;
-
-            String run = Integer.toString(i);
-            String score = Integer.toString(best.getTotalPoints());
-            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
-            String iterations = Double.toString(LocalSearch.avgIterations);
-            String states = Long.toString(LocalSearch.statesCreated);
-
-            /*
-             * appendRows()
-             * k_Restarts;1;838;7239;30;145000
-             */
-            standardWriter.appendRow(Arrays.asList("" + k + "_RestartsFast", run, score, time_ms, iterations, states));
-
-            // Just for Fun
-            // Update progress bar after finishing this run
-            printProgressBar(i, ExperimentLocalSearch.countData);
-
-        }
-
-    }
-
-    /**
-     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
-     * Verzeichnis:
-     * OptimalDMSAlgo/data
-     * 
-     * @param k
-     */
     public static void beamSearch(TeamState teamState, int k) throws IOException {
 
         // Just for Fun
@@ -211,7 +95,7 @@ public class ExperimentLocalSearch {
         System.out.println("Experiment \"Local Beam Search\":");
         printProgressBar(0, countData);
 
-        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/local" + k + "BeamEXTREM.csv", ";");
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/local" + k + "Beam.csv", ";");
 
         /*
          * writingHeader()
@@ -698,6 +582,238 @@ public class ExperimentLocalSearch {
             // Just for Fun
             // Update progress bar after finishing this run
             printProgressBar(i, ExperimentLocalSearch.countData);
+        }
+    }
+
+    // =============================================================
+    // Faster Tests
+    // =============================================================
+
+    /**
+     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void standardHillClimbingFast(TeamState teamState) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"Standart Hill Climbing Fast\":");
+        printProgressBar(0, countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHillFast.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+        }
+
+        for (int i = 1; i <= countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.hillClimbingFast(teamState);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.iterations);
+            String states = Long.toString(LocalSearch.statesCreated);
+
+            /*
+             * appendRow()
+             * standard;1;838;7239;30;145000
+             */
+            standardWriter.appendRow(Arrays.asList("standardFast", run, score, time_ms, iterations, states));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, countData);
+        }
+    }
+
+    /**
+     * Startet k-Restart-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void kRestartsHillClimbinFast(int k, TeamState teamState) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"" + k + "-Restarts Hill Climbing Fast\":");
+        printProgressBar(0, ExperimentLocalSearch.countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/" + k + "_RestartsHillFast.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,avg_iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "avg_iterations", "states"));
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+        }
+
+        for (int i = 1; i <= ExperimentLocalSearch.countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.hillClimbingWithKStartsFast(teamState, k);
+            System.out.println(best.toStringTeamSwimmers());
+            System.out.println(best.toStringLineUp());
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.avgIterations);
+            String states = Long.toString(LocalSearch.statesCreated);
+
+            /*
+             * appendRows()
+             * k_Restarts;1;838;7239;30;145000
+             */
+            standardWriter.appendRow(Arrays.asList("" + k + "_RestartsFast", run, score, time_ms, iterations, states));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, ExperimentLocalSearch.countData);
+
+        }
+    }
+
+    /**
+     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void beamSearchFast(TeamState teamState, int k) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"Local Beam Search Fast\":");
+        printProgressBar(0, countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/local" + k + "BeamFast.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
+
+        for (int i = 1; i <= countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.beamSearchFast(teamState, k);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.iterations);
+            String states = Long.toString(LocalSearch.statesCreated);
+
+            /*
+             * appendRow()
+             * standard;1;838;7239;30;145000
+             */
+            standardWriter.appendRow(Arrays.asList("beamSearchFast", run, score, time_ms, iterations, states));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, countData);
+        }
+    }
+
+    // =============================================================
+    // Internal Tests
+    // =============================================================
+
+    /**
+     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void standardHillClimbingFastIterations(TeamState teamState) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"Standart Hill Climbing Iterations\":");
+        printProgressBar(0, countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHillFastIterations.csv", ";");
+
+        /*
+         * writingHeader()
+         * run_id; iteration; points
+         */
+        standardWriter.writeHeader(Arrays.asList("run_id", "iteration", "points"));
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+        }
+
+        for (int i = 1; i <= countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.hillClimbingFast(teamState);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            int iter = 1;
+            for (Integer points : LocalSearch.pointsDevelopment) {
+
+                /*
+                 * appendRow()
+                 * 1; 1; 19000
+                 * ...
+                 */
+                standardWriter.appendRow(Arrays.asList(Integer.toString(i), Integer.toString(iter), points.toString()));
+                iter++;
+
+            }
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, countData);
         }
     }
 
