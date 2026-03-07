@@ -298,9 +298,11 @@ public class TeamState {
     public List<TeamState> createAllNeighbors() {
         List<TeamState> neighbors = new ArrayList<TeamState>();
         for (int i = 0; i < this.order.length; i++) {
+
             if (this.order[i][0] == -1 || this.order[i][0] == -2) {
                 continue; // No neighbor for breaks needed
             }
+
             neighbors.addAll(createNeighborsForIndex(i));
         }
         return neighbors;
@@ -337,7 +339,7 @@ public class TeamState {
     // MAYBE A little uneffective O(n) because we have to search through all
     // athletes
     // O(1) could be reachable
-    // MUST BE OPTIMIZED GROWS EXPONENTIAL
+    // MUST BE OPTIMIZED GROWS
     public void swapAthletes(int orderIndex, int athleteID) {
         SwimmingEvent event = SwimmingEvent.values()[Competition.order[orderIndex][0]];
         Swimmer original = lineUp.get(Integer.valueOf(orderIndex));
@@ -354,6 +356,7 @@ public class TeamState {
                 athlete = s;
             }
         }
+
         if (athlete != null) {
             lineUp.put(orderIndex, athlete);
             athlete.chooseEvent(orderIndex);

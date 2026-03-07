@@ -775,13 +775,20 @@ public class ExperimentLocalSearch {
         System.out.println("Experiment \"Standart Hill Climbing Iterations\":");
         printProgressBar(0, countData);
 
-        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHillFastIterations.csv", ";");
+        CSVWriter iterationWriter = new CSVWriter("OptimalDMSAlgo/data/internEval/standardHillFastIterations.csv", ";");
+        CSVWriter firstAndLastWriter = new CSVWriter("OptimalDMSAlgo/data/internEval/standardHillFirstLast.csv",
+                ";");
 
         /*
          * writingHeader()
          * run_id; iteration; points
          */
-        standardWriter.writeHeader(Arrays.asList("run_id", "iteration", "points"));
+        iterationWriter.writeHeader(Arrays.asList("run_id", "iteration", "points"));
+        /*
+         * writingHeader()
+         * run_id; startPoints; endPoints
+         */
+        firstAndLastWriter.writeHeader(Arrays.asList("run_id", "startPoints", "endPoints"));
 
         for (int i = 0; i <= 3; i++) {
             LocalSearch.hillClimbing(teamState); // JVM Warm-Up
@@ -806,10 +813,87 @@ public class ExperimentLocalSearch {
                  * 1; 1; 19000
                  * ...
                  */
-                standardWriter.appendRow(Arrays.asList(Integer.toString(i), Integer.toString(iter), points.toString()));
+                iterationWriter
+                        .appendRow(Arrays.asList(Integer.toString(i), Integer.toString(iter), points.toString()));
                 iter++;
 
             }
+
+            Integer first = LocalSearch.pointsDevelopment.getFirst();
+            Integer last = LocalSearch.pointsDevelopment.getLast();
+            firstAndLastWriter.appendRow(Arrays.asList(Integer.toString(i), first.toString(), last.toString()));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, countData);
+        }
+    }
+
+    /**
+     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void firstChoiceHillClimbingKSwapsIterations(TeamState teamState, int k) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"First Choice Climbing kSwaps Iterations\":");
+        printProgressBar(0, countData);
+
+        CSVWriter iterationWriter = new CSVWriter(
+                "OptimalDMSAlgo/data/internEval/first" + k + "SwapsHillFastIterations.csv",
+                ";");
+        CSVWriter firstAndLastWriter = new CSVWriter(
+                "OptimalDMSAlgo/data/internEval/first" + k + "SwapsHillFirstLast.csv",
+                ";");
+
+        /*
+         * writingHeader()
+         * run_id; iteration; points
+         */
+        iterationWriter.writeHeader(Arrays.asList("run_id", "iteration", "points"));
+        /*
+         * writingHeader()
+         * run_id; startPoints; endPoints
+         */
+        firstAndLastWriter.writeHeader(Arrays.asList("run_id", "startPoints", "endPoints"));
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+        }
+
+        for (int i = 1; i <= countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.firstChoiceHillClimbingWithSwaps(teamState, k);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            int iter = 1;
+            for (Integer points : LocalSearch.pointsDevelopment) {
+
+                /*
+                 * appendRow()
+                 * 1; 1; 19000
+                 * ...
+                 */
+                iterationWriter
+                        .appendRow(Arrays.asList(Integer.toString(i), Integer.toString(iter), points.toString()));
+                iter++;
+
+            }
+
+            Integer first = LocalSearch.pointsDevelopment.getFirst();
+            Integer last = LocalSearch.pointsDevelopment.getLast();
+            firstAndLastWriter.appendRow(Arrays.asList(Integer.toString(i), first.toString(), last.toString()));
 
             // Just for Fun
             // Update progress bar after finishing this run

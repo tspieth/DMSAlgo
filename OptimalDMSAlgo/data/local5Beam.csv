@@ -1,1 +1,2 @@
 variant;run;score;time_ms;iterations;states
+beamSearch;1;23046;23921.840;0.0;340

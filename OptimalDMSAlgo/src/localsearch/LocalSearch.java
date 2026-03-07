@@ -96,7 +96,7 @@ public class LocalSearch {
             if (firstBetter == null) {
                 break; // no better neighbor was found
             }
-            System.out.println(firstBetter.getTotalPoints());
+            // System.out.println(firstBetter.getTotalPoints());
             currentState = firstBetter;
             iterations++; // update Iterations
         }
@@ -206,7 +206,7 @@ public class LocalSearch {
                     (a, b) -> Integer.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
             for (TeamState c : currentStates) {
 
-                List<TeamState> topNeigh = c.createTopKNeighbors(500);
+                List<TeamState> topNeigh = c.createTopKNeighbors(k);
                 statesCreated += topNeigh.size();
                 for (TeamState b : topNeigh) {
                     maxHeap.add(b);
@@ -267,6 +267,7 @@ public class LocalSearch {
         // return current; => unreachable
     }
 
+    // Only gets Top N Neighbors each round
     public static TeamState SimulatedAnnealingShavedN(TeamState current, Schedule schedule, int n) {
 
         statesCreated = 0; // reset statesCreated
@@ -390,7 +391,7 @@ public class LocalSearch {
                     (a, b) -> Integer.compare(b.getTotalPointsFast(), a.getTotalPointsFast()));
             for (TeamState c : currentStates) {
 
-                List<TeamState> topNeigh = c.createTopKNeighborsFast(2);
+                List<TeamState> topNeigh = c.createTopKNeighborsFast(k);
                 statesCreated += topNeigh.size();
                 for (TeamState b : topNeigh) {
                     maxHeap.add(b);

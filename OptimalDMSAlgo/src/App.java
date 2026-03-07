@@ -47,7 +47,7 @@ public class App {
         TeamState teamState = new TeamState(club, true);
         // System.out.println(teamState.toStringShavedLeaderboards());
 
-        // System.out.println(LinearProgramming.toStringsimplexXBnB(club, false, 3));
+        System.out.println(LinearProgramming.toStringsimplexXBnB(club, false, 3));
         // TeamNode.setAvailableSwimmer(club, true);
         // TeamNode.setGlobalLeaderboard();
         // TeamNode.toStringGlobalLead();
@@ -77,19 +77,19 @@ public class App {
         // Experiment Calls
         // =========================
 
-        // ExperimentLocalSearch.beamSearch(teamState, 500);
+        // ExperimentLocalSearch.beamSearch(teamState, 5);
         // ExperimentLocalSearch.kRestartsFirstChoiceHillClimbing(100, teamState);
         // ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
         // ExperimentLocalSearch.kRestartsHillClimbinFast(1000, teamState);
-        // ExperimentLocalSearch.simulatedAnnealingShavedN(teamState, 50);
+        // ExperimentLocalSearch.simulatedAnnealingShavedN(teamState, 10);
         // ExperimentLocalSearch.simulatedAnnealing(teamState);
         // ExperimentLocalSearch.kSideStepsHillClimbing(2, teamState);
         // ExperimentLocalSearch.kSideStepsHillClimbing(20, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(50, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(5, teamState);
-        ExperimentLocalSearch.standardHillClimbingFastIterations(teamState);
+        // ExperimentLocalSearch.firstChoiceHillClimbingKSwapsIterations(teamState, 4);
         // ExperimentLocalSearch.kRestartsHillClimbinFast(1000, teamState);
-        // ExperimentLocalSearch.beamSearchFast(teamState, 1000);
+        // ExperimentLocalSearch.beamSearchFast(teamState, 20);
         // ExperimentLocalSearch.standardHillClimbing(teamState);
         // ExperimentLocalSearch.firstChoiceHillClimbingWithKSwaps(teamState, 5);
 
