@@ -1,7 +1,9 @@
 package experiments;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
@@ -14,7 +16,7 @@ import localsearch.TeamState;
 public class ExperimentLocalSearch {
 
     public static Random rng = new Random(42); // fester Seed
-    public static int countData = 30;
+    public static int countData = 1000;
 
     // Just for Fun
     private static boolean progressBarInitialized = false;
@@ -72,6 +74,67 @@ public class ExperimentLocalSearch {
 
             // Write bestState
             CSVWriter lineupWriter = new CSVWriter("OptimalDMSAlgo/data/teams/standardHillTeam" + i + ".csv");
+            lineupWriter.writeLineUp(best);
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(i, countData);
+        }
+    }
+
+    /**
+     * Startet Standard-Hill-Climbing k Mal und erstellt ein .csv Datei im
+     * Verzeichnis:
+     * OptimalDMSAlgo/data
+     * 
+     * @param k
+     */
+    public static void hillClimbingOnTheFly(TeamState teamState) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"Standart Hill Climbing\":");
+        printProgressBar(0, countData);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/standardHillOnTheFly.csv", ";");
+
+        /*
+         * writingHeader()
+         * variant,run,score,time_ms,iterations,states
+         */
+        standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
+
+        for (int i = 0; i <= 3; i++) {
+            // LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+        }
+
+        for (int i = 1; i <= countData; i++) {
+
+            teamState.newRandomLineUp(); // so runs dont give same outcome
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.hillClimbingCompleatlyFly(teamState);
+            // System.out.println(best.toStringLineUp());
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String run = Integer.toString(i);
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Double.toString(LocalSearch.iterations);
+            String states = Long.toString(LocalSearch.statesCreated);
+
+            /*
+             * appendRow()
+             * standard;1;838;7239;30;145000
+             */
+            standardWriter.appendRow(Arrays.asList("standard", run, score, time_ms, iterations, states));
+
+            // Write bestState
+            CSVWriter lineupWriter = new CSVWriter("OptimalDMSAlgo/data/teams/standardHillTeamFly" + i + ".csv");
             lineupWriter.writeLineUp(best);
 
             // Just for Fun
@@ -221,6 +284,7 @@ public class ExperimentLocalSearch {
 
             long start = System.nanoTime();
             TeamState best = LocalSearch.firstChoiceHillClimbingWithSwaps(teamState, k);
+            System.out.println(best.toStringLineUp());
             long end = System.nanoTime();
 
             long durationNs = end - start;
@@ -480,7 +544,7 @@ public class ExperimentLocalSearch {
          */
         standardWriter.writeHeader(Arrays.asList("variant", "run", "score", "time_ms", "iterations", "states"));
 
-        ExponentialSchedule schedule = new ExponentialSchedule(1, 0.995, 0.005);
+        ExponentialSchedule schedule = new ExponentialSchedule(10, 0.99, 0.0001);
 
         // for (int i = 0; i <= 1; i++) {
         // schedule.reset(1000);
@@ -799,7 +863,7 @@ public class ExperimentLocalSearch {
             teamState.newRandomLineUp(); // so runs dont give same outcome
 
             long start = System.nanoTime();
-            TeamState best = LocalSearch.hillClimbingFast(teamState);
+            TeamState best = LocalSearch.hillClimbingCompleatlyFly(teamState);
             long end = System.nanoTime();
 
             long durationNs = end - start;
@@ -836,7 +900,8 @@ public class ExperimentLocalSearch {
      * 
      * @param k
      */
-    public static void firstChoiceHillClimbingKSwapsIterations(TeamState teamState, int k) throws IOException {
+    public static void firstChoiceHillClimbingKSwapsIterationsTeamName(TeamState teamState, int k, String teamString)
+            throws IOException {
 
         // Just for Fun
         // Print initial progress bar (0%)
@@ -845,10 +910,10 @@ public class ExperimentLocalSearch {
         printProgressBar(0, countData);
 
         CSVWriter iterationWriter = new CSVWriter(
-                "OptimalDMSAlgo/data/internEval/first" + k + "SwapsHillFastIterations.csv",
+                "OptimalDMSAlgo/data/internEval/first" + k + "SwapsHillFastIterations " + teamString + ".csv",
                 ";");
         CSVWriter firstAndLastWriter = new CSVWriter(
-                "OptimalDMSAlgo/data/internEval/first" + k + "SwapsHillFirstLast.csv",
+                "OptimalDMSAlgo/data/internEval/first" + k + "SwapsHillFirstLast" + teamString + ".csv",
                 ";");
 
         /*
@@ -863,7 +928,7 @@ public class ExperimentLocalSearch {
         firstAndLastWriter.writeHeader(Arrays.asList("run_id", "startPoints", "endPoints"));
 
         for (int i = 0; i <= 3; i++) {
-            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+            // LocalSearch.hillClimbing(teamState); // JVM Warm-Up
         }
 
         for (int i = 1; i <= countData; i++) {
@@ -898,6 +963,415 @@ public class ExperimentLocalSearch {
             // Just for Fun
             // Update progress bar after finishing this run
             printProgressBar(i, countData);
+        }
+    }
+
+    // =============================================================
+    // Comparison by Time
+    // =============================================================
+
+    /**
+     * Tests each important funktion by time
+     * Every funktion gets tested 30 times per Timestamp
+     * 
+     * 5s - 10s - 20s - 60s - 120s
+     * 
+     * @param k
+     */
+    public static void comparisonByTime(TeamState teamState, int time) throws IOException {
+
+        // Just for Fun
+        // Print initial progress bar (0%)
+        progressBarInitialized = false;
+        System.out.println("Experiment \"Time " + time + "\":");
+        printProgressBar(0, countData * 5);
+
+        CSVWriter standardWriter = new CSVWriter("OptimalDMSAlgo/data/internEval/" + time + "standardHill.csv", ";");
+        CSVWriter simulatedAnnealingWriter = new CSVWriter(
+                "OptimalDMSAlgo/data/internEval/" + time + "simulatedAnnealing.csv", ";");
+        CSVWriter beamSearchWriter = new CSVWriter("OptimalDMSAlgo/data/internEval/" + time + "beamSearch.csv", ";");
+        CSVWriter fristWriter = new CSVWriter("OptimalDMSAlgo/data/internEval/" + time + "firstChoice.csv", ";");
+        CSVWriter firstSwapWriter = new CSVWriter("OptimalDMSAlgo/data/internEval/" + time + "firstSwaps.csv", ";");
+
+        List<String> header = Arrays.asList("time", "points", "states");
+
+        standardWriter.writeHeader(header);
+        simulatedAnnealingWriter.writeHeader(header);
+        beamSearchWriter.writeHeader(header);
+        fristWriter.writeHeader(header);
+        firstSwapWriter.writeHeader(header);
+
+        int progress = 1;
+        for (int i = 1; i <= countData; i++) {
+
+            // StandardHill
+            long start = System.currentTimeMillis();
+            long end = System.currentTimeMillis();
+
+            TeamState best = null;
+            long states = 0;
+            while (end - start < time) {
+                teamState.newRandomLineUp(); // so runs dont give same outcome
+                TeamState current = LocalSearch.hillClimbingFast(teamState);
+                states += LocalSearch.statesCreated;
+                if (best == null) {
+                    best = current;
+                } else {
+                    if (best.getTotalPointsFast() < current.getTotalPointsFast()) {
+                        best = current;
+                    }
+                }
+                end = System.currentTimeMillis();
+            }
+            // appendsRow
+            standardWriter.appendRow(Arrays.asList(Long.toString(
+                    (end - start)), Integer.toString(best.getTotalPoints()),
+                    Long.toString(states)));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(progress++, countData * 5);
+
+            // SimulatedAnnealing
+            start = System.currentTimeMillis();
+            end = System.currentTimeMillis();
+
+            best = null;
+            states = 0;
+            ExponentialSchedule schedule = new ExponentialSchedule(10, 0.99, 0.0001);
+            while (end - start < time) {
+                teamState.newRandomLineUp(); // so runs dont give same outcome
+                TeamState current = LocalSearch.SimulatedAnnealing(teamState, schedule);
+                schedule.reset(10);
+                // System.out.println(LocalSearch.statesCreated);
+                states += LocalSearch.statesCreated;
+                if (best == null) {
+                    best = current;
+                } else {
+                    if (best.getTotalPointsFast() < current.getTotalPointsFast()) {
+                        best = current;
+                    }
+                }
+                end = System.currentTimeMillis();
+            }
+            // appendsRow
+            simulatedAnnealingWriter
+                    .appendRow(Arrays.asList(Long.toString((end - start)), Integer.toString(best.getTotalPoints()),
+                            Long.toString(states)));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(progress++, countData * 5);
+
+            // beamSearch
+            start = System.currentTimeMillis();
+            end = System.currentTimeMillis();
+
+            best = null;
+            states = 0;
+            while (end - start < time) {
+                teamState.newRandomLineUp(); // so runs dont give same outcome
+                TeamState current = LocalSearch.beamSearchFast(teamState, 20);
+                states += LocalSearch.statesCreated;
+                if (best == null) {
+                    best = current;
+                } else {
+                    if (best.getTotalPointsFast() < current.getTotalPointsFast()) {
+                        best = current;
+                    }
+                }
+                end = System.currentTimeMillis();
+            }
+            // appendsRow
+            beamSearchWriter
+                    .appendRow(Arrays.asList(Long.toString((end - start)), Integer.toString(best.getTotalPoints()),
+                            Long.toString(states)));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(progress++, countData * 5);
+
+            // FirstChoice
+            start = System.currentTimeMillis();
+            end = System.currentTimeMillis();
+
+            best = null;
+            states = 0;
+            while (end - start < time) {
+                teamState.newRandomLineUp(); // so runs dont give same outcome
+                TeamState current = LocalSearch.firstChoiceHillClimbing(teamState);
+                states += LocalSearch.statesCreated;
+                if (best == null) {
+                    best = current;
+                } else {
+                    if (best.getTotalPointsFast() < current.getTotalPointsFast()) {
+                        best = current;
+                    }
+                }
+                end = System.currentTimeMillis();
+            }
+            // appendsRow
+            fristWriter.appendRow(Arrays.asList(Long.toString((end - start)), Integer.toString(best.getTotalPoints()),
+                    Long.toString(states)));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(progress++, countData * 5);
+
+            // FirstChoiceSwaps
+            start = System.currentTimeMillis();
+            end = System.currentTimeMillis();
+
+            best = null;
+            states = 0;
+            while (end - start < time) {
+                teamState.newRandomLineUp(); // so runs dont give same outcome
+                TeamState current = LocalSearch.firstChoiceHillClimbingWithSwaps(teamState, 3);
+                states += LocalSearch.statesCreated;
+                if (best == null) {
+                    best = current;
+                } else {
+                    if (best.getTotalPointsFast() < current.getTotalPointsFast()) {
+                        best = current;
+                    }
+                }
+                end = System.currentTimeMillis();
+            }
+            // appendsRow
+            firstSwapWriter.appendRow(Arrays.asList(Long.toString(
+                    (end - start)), Integer.toString(best.getTotalPoints()),
+                    Long.toString(states)));
+
+            // Just for Fun
+            // Update progress bar after finishing this run
+            printProgressBar(progress++, countData * 5);
+
+        }
+
+    }
+
+    // Experiment 1
+    public static void compareFive(TeamState teamState) throws IOException {
+        ExperimentLocalSearch.hillClimbingOnTheFly(teamState);
+        ExperimentLocalSearch.beamSearch(teamState, 20);
+        ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
+        ExperimentLocalSearch.simulatedAnnealing(teamState);
+        ExperimentLocalSearch.firstChoiceHillClimbingWithKSwaps(teamState, 3);
+    }
+
+    // Experiment 2
+    public static void compareAllTimes(TeamState teamState) throws IOException {
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(teamState); // JVM Warm-Up
+        }
+
+        comparisonByTime(teamState, 2000);
+        comparisonByTime(teamState, 5000);
+        comparisonByTime(teamState, 10000);
+        comparisonByTime(teamState, 30000);
+        comparisonByTime(teamState, 60000);
+
+    }
+
+    public static void compareDataSets(TeamState better, TeamState svm, TeamState fsdFemale, TeamState fsdMale)
+            throws IOException {
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(better); // JVM Warm-Up
+        }
+
+        firstChoiceHillClimbingKSwapsIterationsTeamName(better, 3, "betterClub");
+        firstChoiceHillClimbingKSwapsIterationsTeamName(svm, 3, "SVM");
+        firstChoiceHillClimbingKSwapsIterationsTeamName(fsdFemale, 3, "DuesseldorfFemale");
+        firstChoiceHillClimbingKSwapsIterationsTeamName(fsdMale, 3, "DuesseldorfMale");
+    }
+
+    public static void compareStartingStates(TeamState state) throws IOException {
+        CSVWriter emptyLineUp = new CSVWriter("OptimalDMSAlgo/data/internEval/EmptyLineUp.csv", ";");
+        CSVWriter emptyAllowed = new CSVWriter("OptimalDMSAlgo/data/internEval/EmptyAllowed.csv", ";");
+        CSVWriter emptyForbidden = new CSVWriter("OptimalDMSAlgo/data/internEval/EmptyForbidden.csv", ";");
+
+        List<String> header = Arrays.asList("time", "points", "iterations");
+
+        emptyLineUp.writeHeader(header);
+        emptyAllowed.writeHeader(header);
+        emptyForbidden.writeHeader(header);
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(state); // JVM Warm-Up
+        }
+
+        progressBarInitialized = false;
+        System.out.println("EmptyLineup:");
+        printProgressBar(0, 1000);
+        for (int i = 1; i <= 1000; i++) {
+            printProgressBar(i, 1000);
+            state.setEmptyLineup();
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.firstChoiceHillClimbingWithSwaps(state, 3);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Long.toString(LocalSearch.iterations);
+
+            /*
+             * appendRows()
+             * time;points;iterations
+             */
+            emptyLineUp.appendRow(Arrays.asList(time_ms, score, iterations));
+
+        }
+
+        progressBarInitialized = false;
+        System.out.println("EmptyForbidden:");
+        printProgressBar(0, 1000);
+        for (int i = 1; i <= 1000; i++) {
+            printProgressBar(i, 1000);
+            state.newRandomLineUpNoEmpty();
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.firstChoiceHillClimbingWithSwaps(state, 3);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Long.toString(LocalSearch.iterations);
+
+            /*
+             * appendRows()
+             * time;points;iterations
+             */
+            emptyForbidden.appendRow(Arrays.asList(time_ms, score, iterations));
+
+        }
+
+        progressBarInitialized = false;
+        System.out.println("EmptyAllowed:");
+        printProgressBar(0, 1000);
+        for (int i = 1; i <= 1000; i++) {
+            printProgressBar(i, 1000);
+            state.newRandomLineUp();
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.firstChoiceHillClimbingWithSwaps(state, 3);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Long.toString(LocalSearch.iterations);
+
+            /*
+             * appendRows()
+             * time;points;iterations
+             */
+            emptyAllowed.appendRow(Arrays.asList(time_ms, score, iterations));
+
+        }
+    }
+
+    public static void compareStartingStatesCompleatly(TeamState state) throws IOException {
+        CSVWriter emptyLineUp = new CSVWriter("OptimalDMSAlgo/data/internEval/CompleatEmptyLineUp.csv", ";");
+        CSVWriter emptyAllowed = new CSVWriter("OptimalDMSAlgo/data/internEval/CompleatEmptyAllowed.csv", ";");
+        CSVWriter emptyForbidden = new CSVWriter("OptimalDMSAlgo/data/internEval/CompleatEmptyForbidden.csv", ";");
+
+        List<String> header = Arrays.asList("time", "points", "iterations");
+
+        emptyLineUp.writeHeader(header);
+        emptyAllowed.writeHeader(header);
+        emptyForbidden.writeHeader(header);
+
+        for (int i = 0; i <= 3; i++) {
+            LocalSearch.hillClimbing(state); // JVM Warm-Up
+        }
+
+        progressBarInitialized = false;
+        System.out.println("EmptyLineup:");
+        printProgressBar(0, 1000);
+        for (int i = 1; i <= 1000; i++) {
+            printProgressBar(i, 1000);
+            state.setEmptyLineup();
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.hillClimbingCompleatlyFly(state);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Long.toString(LocalSearch.iterations);
+
+            /*
+             * appendRows()
+             * time;points;iterations
+             */
+            emptyLineUp.appendRow(Arrays.asList(time_ms, score, iterations));
+
+        }
+
+        progressBarInitialized = false;
+        System.out.println("EmptyForbidden:");
+        printProgressBar(0, 1000);
+        for (int i = 1; i <= 1000; i++) {
+            printProgressBar(i, 1000);
+            state.newRandomLineUpNoEmpty();
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.hillClimbingCompleatlyFly(state);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Long.toString(LocalSearch.iterations);
+
+            /*
+             * appendRows()
+             * time;points;iterations
+             */
+            emptyForbidden.appendRow(Arrays.asList(time_ms, score, iterations));
+
+        }
+
+        progressBarInitialized = false;
+        System.out.println("EmptyAllowed:");
+        printProgressBar(0, 1000);
+        for (int i = 1; i <= 1000; i++) {
+            printProgressBar(i, 1000);
+            state.newRandomLineUp();
+
+            long start = System.nanoTime();
+            TeamState best = LocalSearch.hillClimbingCompleatlyFly(state);
+            long end = System.nanoTime();
+
+            long durationNs = end - start;
+            double durationMs = durationNs / 1_000_000.0;
+
+            String score = Integer.toString(best.getTotalPoints());
+            String time_ms = String.format(Locale.US, "%.3f", durationMs); // Locale.US so it uses . instead of ,
+            String iterations = Long.toString(LocalSearch.iterations);
+
+            /*
+             * appendRows()
+             * time;points;iterations
+             */
+            emptyAllowed.appendRow(Arrays.asList(time_ms, score, iterations));
+
         }
     }
 

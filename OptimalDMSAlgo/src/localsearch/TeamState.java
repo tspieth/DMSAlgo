@@ -212,6 +212,41 @@ public class TeamState {
         return true;
     }
 
+    public boolean newRandomLineUpNoEmpty() {
+        int maxAttempts = 1000;
+        int attempts = 0;
+
+        this.lineUp = null;
+        while (this.lineUp == null && attempts < maxAttempts) {
+            this.resetTeamState();
+            this.lineUp = this.generateRandomLineUpNoEmpty();
+            attempts++;
+        }
+
+        if (this.lineUp == null) {
+            System.out.println("Failed to generate a valid lineup after " + maxAttempts + " attempts.");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean setEmptyLineup() {
+        this.totalPoints = 0; // Reset points for new lineup
+
+        for (int i = 0; i < this.order.length; i++) {
+            int eventIndex = this.order[i][0];
+
+            if (eventIndex == -1) {
+                continue;
+            }
+            if (eventIndex == -2) {
+                continue;
+            }
+            this.swapAthletes(i, -1);
+        }
+        return true;
+    }
+
     // Helper Method for newRandomLineUp()
     private Map<Integer, Swimmer> generateRandomLineUp() {
         Map<Integer, Swimmer> lineUp = new HashMap<>();
@@ -220,13 +255,6 @@ public class TeamState {
         for (int i = 0; i < this.order.length; i++) {
             Swimmer randomSwimmer = getRandomSwimmerForCompetition(i);
 
-            /*
-             * if ((randomSwimmer == null && order[i][0] != -1) &&
-             * order[i][0] != -2) {
-             * // System.out.println("Es konnte kein Linup gebildet werden.");
-             * return null;
-             * }
-             */
             if (randomSwimmer != null) {
                 totalPoints += randomSwimmer.getPointsForOrderIndex(i);
             }
@@ -270,6 +298,68 @@ public class TeamState {
         return randomSwimmer;
     }
 
+    // Helper Method for newRandomLineUp()
+    private Map<Integer, Swimmer> generateRandomLineUpNoEmpty() {
+        Map<Integer, Swimmer> lineUp = new HashMap<>();
+        this.totalPoints = 0; // Reset points for new lineup
+
+        for (int i = 0; i < this.order.length; i++) {
+
+            int eventIndex = this.order[i][0];
+
+            if (eventIndex == -1) {
+                continue; // if there is a break, return null
+            }
+            if (eventIndex == -2) {
+                continue; // if the event is for the other gender
+            }
+
+            Swimmer randomSwimmer = getRandomSwimmerForCompetitionNoEmpty(i);
+
+            if (randomSwimmer == null) {
+                return null;
+            }
+            if (randomSwimmer != null) {
+                totalPoints += randomSwimmer.getPointsForOrderIndex(i);
+            }
+            lineUp.put(i, randomSwimmer);
+        }
+        return lineUp;
+    }
+
+    // Gets RandomSwimmer for orderIndex if exists, else null is returned
+    public Swimmer getRandomSwimmerForCompetitionNoEmpty(int orderIndex) {
+
+        int eventIndex = this.order[orderIndex][0];
+
+        if (eventIndex == -1) {
+            return null; // if there is a break, return null
+        }
+        if (eventIndex == -2) {
+            return null; // if the event is for the other gender
+        }
+        return getRandomSwimmerForEventNoEmpty(SwimmingEvent.values()[eventIndex], orderIndex);
+    }
+
+    // Helper Method for getRandomSwimmerForEvent(int orderIndex)
+    // Erlaubt keine leeren Slots
+    private Swimmer getRandomSwimmerForEventNoEmpty(SwimmingEvent event, int orderIndex) {
+        List<Swimmer> valid = leaderboards.get(event).stream()
+                .filter(s -> s.canChooseOrderIndex(orderIndex))
+                .toList();
+
+        if (valid.isEmpty()) {
+            return null;
+        }
+        // Anzahl der Optionen: valid.size() Schwimmer + 1 leerer Slot
+        int totalOptions = valid.size();
+        int randomIndex = ExperimentLocalSearch.rng.nextInt(totalOptions);
+
+        Swimmer randomSwimmer = valid.get(randomIndex);
+        randomSwimmer.chooseEvent(orderIndex);
+        return randomSwimmer;
+    }
+
     // =============================================================
     // Neighbor Creator Methodes
     // =============================================================
@@ -292,6 +382,50 @@ public class TeamState {
         }
         return topKNeighors;
 
+    }
+
+    public TeamState getBestNeighborFast() {
+        TeamState neighbor = null;
+        int currentBestPoints = Integer.MIN_VALUE;
+        int bestOrderIndex = -1;
+        int toSwapAthlete = -1;
+        for (int i = 0; i < this.order.length; i++) {
+            int[] pointsAndID = new int[] { 0, -1 };
+            if (this.order[i][0] == -1 || this.order[i][0] == -2) {
+                continue; // No neighbor for breaks needed
+            }
+            getBestNeighborForIndex(pointsAndID, i);
+            if (pointsAndID[0] > currentBestPoints) {
+                currentBestPoints = pointsAndID[0];
+                bestOrderIndex = i;
+                toSwapAthlete = pointsAndID[1];
+            }
+
+        }
+        neighbor = new TeamState(this);
+        neighbor.swapAthletes(bestOrderIndex, toSwapAthlete);
+        return neighbor;
+    }
+
+    public void getBestNeighborForIndex(int[] pointsAndID, int orderIndex) {
+        int currentBestPoints = 0;
+        int toSwapAthlete = -1;
+        for (Swimmer swimmer : availableSwimmers) {
+            if (swimmer.canChooseOrderIndex(orderIndex)) {
+                int originalID = -1;
+                if (this.lineUp.get(orderIndex) != null) {
+                    originalID = this.lineUp.get(orderIndex).getID();
+                }
+                this.swapAthletes(orderIndex, swimmer.getID());
+                if (this.totalPoints > currentBestPoints) {
+                    currentBestPoints = this.totalPoints;
+                    toSwapAthlete = swimmer.getID();
+                }
+                this.swapAthletes(orderIndex, originalID);
+            }
+        }
+        pointsAndID[0] = currentBestPoints;
+        pointsAndID[1] = toSwapAthlete;
     }
 
     // Creates All Neighbors
@@ -348,6 +482,11 @@ public class TeamState {
         if (original != null) {
             original.removeEvent(orderIndex);
             this.totalPoints -= original.getPointsForEvent(event);
+        }
+
+        if (athleteID == -1) {
+            this.lineUp.put(orderIndex, null);
+            return;
         }
 
         Swimmer athlete = null;
@@ -473,14 +612,14 @@ public class TeamState {
     // against
     // ATTENTION IS NOT COMPLEATLY RANDOM
     // GOES THROUGH BY DFS WHERE EACH LEVEL IS RANDOM
+    // DUPLICATES ARE BAD
     private TeamState findFirstBetterByDepthFast(TeamState current, List<int[]> moves, int remainingSwaps,
             int baseline) {
         if (remainingSwaps <= 0) {
             return null;
         }
 
-        List<int[]> shuffledMoves = new ArrayList<>(moves);
-        Collections.shuffle(shuffledMoves, ExperimentLocalSearch.rng);
+        List<int[]> shuffledMoves = moves;
 
         for (int[] m : shuffledMoves) {
             LocalSearch.statesCreated++;
@@ -608,7 +747,7 @@ public class TeamState {
         }
     }
 
-    public void setEmptyLineup() {
+    public void setEmptyLineupFake() {
         this.lineUp = new HashMap<>();
         for (int i = 0; i < this.order.length; i++) {
             this.lineUp.put(i, null);

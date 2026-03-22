@@ -6,10 +6,12 @@ import branchNbound.BranchNBound;
 import branchNbound.TeamNode;
 import experiments.ExperimentLocalSearch;
 import io.CSVReader;
+import io.CSVWriter;
 import linearProgramming.LinearProgramming;
 import linearProgramming.Constraints;
 import linearProgramming.Solution;
 import linearProgramming.SwimModel;
+import localsearch.ExponentialSchedule;
 import localsearch.LocalSearch;
 import localsearch.TeamState;
 import objects.Competition;
@@ -35,19 +37,50 @@ public class App {
         Competition.setSimpleOrderMale();
         Competition.setSimpleOrderFemale();
 
-        List<Swimmer> schwimmerListe = CSVReader.createSwimmer("OptimalDMSAlgo/resources/Duesseldorf_Old.csv");
+        // Erstellung vom BetterClub
+        List<Swimmer> betterSwimmers = CSVReader.createSwimmer("OptimalDMSAlgo/resources/betterClub.csv");
 
-        SwimmingClub club = new SwimmingClub(schwimmerListe);
-        for (Swimmer schwimmer : club.getAllSwimmer()) {
+        SwimmingClub betterClub = new SwimmingClub(betterSwimmers);
+        for (Swimmer schwimmer : betterClub.getAllSwimmer()) {
             schwimmer.updatePoints(); // update points for each swimmer based on their times
         }
-        club.generateLeaderboards();
+        betterClub.generateLeaderboards();
 
-        // System.out.println(club.toStringLeaderboards(7, false));
-        TeamState teamState = new TeamState(club, true);
-        // System.out.println(teamState.toStringShavedLeaderboards());
+        TeamState betterState = new TeamState(betterClub, true);
 
-        System.out.println(LinearProgramming.toStringsimplexXBnB(club, false, 3));
+        // Erstellung vom SVM
+        List<Swimmer> svmSwimmers = CSVReader.createSwimmer("OptimalDMSAlgo/resources/SVM.csv");
+
+        SwimmingClub svm = new SwimmingClub(svmSwimmers);
+        for (Swimmer schwimmer : svm.getAllSwimmer()) {
+            schwimmer.updatePoints(); // update points for each swimmer based on their times
+        }
+        svm.generateLeaderboards();
+
+        TeamState svmState = new TeamState(svm, true);
+
+        // Erstellung von FSD
+        List<Swimmer> fsdSwimmers = CSVReader.createSwimmer("OptimalDMSAlgo/resources/Duesseldorf_Old.csv");
+
+        SwimmingClub fsd = new SwimmingClub(fsdSwimmers);
+        for (Swimmer schwimmer : fsd.getAllSwimmer()) {
+            schwimmer.updatePoints(); // update points for each swimmer based on their times
+        }
+        fsd.generateLeaderboards();
+
+        TeamState fsdFemale = new TeamState(fsd, false);
+        TeamState fsdMale = new TeamState(fsd, true);
+
+        // System.out.println(LocalSearch.hillClimbing(teamState).toStringLineUp());
+        // System.out.println(LinearProgramming.toStringsimplexXBnB(betterClub, true,
+        // 2));
+
+        System.out.println(fsd.toStringLeaderboards(7, true));
+        // CSVWriter lineupWriter = new
+        // CSVWriter("OptimalDMSAlgo/data/teams/firstChoice" + 5 + ".csv");
+        // lineupWriter.writeLineUp(LocalSearch.firstChoiceHillClimbingWithSwaps(teamState,
+        // 4));
+
         // TeamNode.setAvailableSwimmer(club, true);
         // TeamNode.setGlobalLeaderboard();
         // TeamNode.toStringGlobalLead();
@@ -77,21 +110,33 @@ public class App {
         // Experiment Calls
         // =========================
 
-        // ExperimentLocalSearch.beamSearch(teamState, 5);
+        // TeamState best = LocalSearch.SimulatedAnnealing(teamState, new
+        // ExponentialSchedule(10, 0.99, 0.0001));
+        // System.out.println(best.toStringLineUp());
+        // ExperimentLocalSearch.compareStartingStatesCompleatly(fsdFemale);
+        // ExperimentLocalSearch.compareStartingStates(betterState);
+        // ExperimentLocalSearch.compareDataSets(betterState, svmState, fsdFemale,
+        // fsdMale);
+        // ExperimentLocalSearch.compareAllTimes(teamState);
+        // ExperimentLocalSearch.hillClimbingOnTheFly(betterState);
+        // ExperimentLocalSearch.beamSearch(teamState, 20);
         // ExperimentLocalSearch.kRestartsFirstChoiceHillClimbing(100, teamState);
         // ExperimentLocalSearch.firstChoiceHillClimbing(teamState);
-        // ExperimentLocalSearch.kRestartsHillClimbinFast(1000, teamState);
+        ExperimentLocalSearch.kRestartsHillClimbinFast(1_000_0, betterState);
         // ExperimentLocalSearch.simulatedAnnealingShavedN(teamState, 10);
         // ExperimentLocalSearch.simulatedAnnealing(teamState);
         // ExperimentLocalSearch.kSideStepsHillClimbing(2, teamState);
         // ExperimentLocalSearch.kSideStepsHillClimbing(20, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(50, teamState);
         // ExperimentLocalSearch.kRestartsHillClimbing(5, teamState);
-        // ExperimentLocalSearch.firstChoiceHillClimbingKSwapsIterations(teamState, 4);
-        // ExperimentLocalSearch.kRestartsHillClimbinFast(1000, teamState);
+        // ExperimentLocalSearch.firstChoiceHillClimbingKSwapsIterationsTeamName(betterState,
+        // 2, "Test");
+
+        // ExperimentLocalSearch.kRestartsHillClimbinFast(100000, teamState);
         // ExperimentLocalSearch.beamSearchFast(teamState, 20);
-        // ExperimentLocalSearch.standardHillClimbing(teamState);
-        // ExperimentLocalSearch.firstChoiceHillClimbingWithKSwaps(teamState, 5);
+        // ExperimentLocalSearch.standardHillClimbing(betterState);
+        // ExperimentLocalSearch.standardHillClimbingFastIterations(teamState);
+        // ExperimentLocalSearch.firstChoiceHillClimbingWithKSwaps(betterState, 3);
 
         /*
          * System.out.println("Punkte vor HillClimb " + teamState.getTotalPoints());

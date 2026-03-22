@@ -26,6 +26,7 @@ public class Swimmer {
     private int endurance; // endurance level of the swimmer, determines how long breaks have to be between
                            // events
     private int maxSectionEvents = 3;
+    private int neededBreakK = 2;
     private int totalPoints; // may be used for Optimisation
     private boolean isMale;
     private int countChoosenEvents = 0; // keeps track of how many events the swimmer has chosen
@@ -274,12 +275,24 @@ public class Swimmer {
             event = SwimmingEvent.values()[eventIndex];
         }
 
+        // if (canChooseEvent(event)) {
+        // if (hasEnoughBreak(orderIndex) && hasEnoughBreakAfter(orderIndex)
+        // && !hasToMuchEvents(orderIndex, this.maxSectionEvents)) {
+        // return true;
+        // }
+        // return false;
+
+        // } else {
+        // return false;
+        // }
         if (canChooseEvent(event)) {
-            if (hasEnoughBreak(orderIndex) && hasEnoughBreakAfter(orderIndex)
+            if (hasBreakOf(orderIndex, neededBreakK) && hasBreakOfAfter(orderIndex,
+                    neededBreakK)
                     && !hasToMuchEvents(orderIndex, this.maxSectionEvents)) {
                 return true;
             }
             return false;
+
         } else {
             return false;
         }
@@ -315,7 +328,6 @@ public class Swimmer {
 
     // For simplicity this methode supposes that the athlete starts in the last heat
     // of the last event he compeated in and in the first of the order index
-    // Needs Change Bug because of FEMALE EVENTS INDEX
     public boolean hasEnoughBreak(int orderIndex) {
         int currentIndex = orderIndex - 1;
         int currentBreakTime = 0;
@@ -401,6 +413,72 @@ public class Swimmer {
             }
         }
         return (countEvents >= maxEvents); // Should work??
+    }
+
+    public boolean hasBreakOf(int orderIndex, int k) {
+        int currentIndex = orderIndex - 1;
+        int currentBreaks = 0;
+        if (currentIndex < 0) {
+            return true; // before first event no break is needed
+        }
+        int[][] orderGender = this.isMale ? Competition.orderMale : Competition.orderFemale;
+        int eventIndex = orderGender[currentIndex][0];
+        for (; currentIndex >= 0; currentIndex--) {
+            eventIndex = orderGender[currentIndex][0];
+            if (!eventIndices[currentIndex]) {
+                if (eventIndex == -1) {
+                    return true;
+                } else {
+                    if (eventIndex == -2) {
+                        continue;
+                    }
+                    currentBreaks++;
+                }
+            } else {
+                break; // last Compeating Event found
+            }
+        }
+        if (currentIndex < 0) {
+            return true; // swimmer has no choosen event;
+        }
+        if (currentBreaks < k) {
+            // System.out.println(this.id + ". Pause ist zu Kurz " + orderIndex + " " +
+            // currentBreakTime);
+            return false;
+        }
+        return true;
+    }
+
+    public boolean hasBreakOfAfter(int orderIndex, int k) {
+        int currentIndex = orderIndex + 1;
+        int currentBreaks = 0;
+
+        boolean hasEventAfter = false;
+
+        int[][] orderGender = this.isMale ? Competition.orderMale : Competition.orderFemale;
+        for (; currentIndex < orderGender.length; currentIndex++) {
+
+            int eventIndex = orderGender[currentIndex][0];
+            if (!eventIndices[currentIndex]) {
+                if (eventIndex == -1) {
+                    return true;
+                } else {
+                    if (eventIndex == -2) {
+                        continue;
+                    }
+                    currentBreaks++;
+                }
+            } else {
+                hasEventAfter = true;
+                break; // last Compeating Event found
+            }
+        }
+        if (hasEventAfter && currentBreaks < k) {
+            // System.out.println(this.id + ". Pause ist zu Kurz " + orderIndex + " " +
+            // currentBreakTime);
+            return false;
+        }
+        return true;
     }
 
     // =============================================================
@@ -500,7 +578,7 @@ public class Swimmer {
 
     }
 
-    public String toStringBreakBefore(int orderIndex) {
+    public String toStringBreakBefores(int orderIndex) {
         int currentIndex = orderIndex - 1;
         if (currentIndex == -1) {
             return "Infinity";
@@ -529,5 +607,78 @@ public class Swimmer {
 
         }
         return Integer.toString(currentBreakTime) + "min";
+    }
+
+    public String toStringBreakBeforeNumber(int orderIndex) {
+        int k = neededBreakK;
+        int currentIndex = orderIndex - 1;
+        int currentBreaks = 0;
+        if (currentIndex < 0) {
+            return "Infinity"; // before first event no break is needed
+        }
+        int[][] orderGender = this.isMale ? Competition.orderMale : Competition.orderFemale;
+        int eventIndex = orderGender[currentIndex][0];
+        for (; currentIndex >= 0; currentIndex--) {
+            eventIndex = orderGender[currentIndex][0];
+            if (!eventIndices[currentIndex]) {
+                if (eventIndex == -1) {
+                    return "NoEventsBefore Breake";
+                } else {
+                    if (eventIndex == -2) {
+                        continue;
+                    }
+                    currentBreaks++;
+                }
+            } else {
+                break; // last Compeating Event found
+            }
+        }
+        if (currentIndex < 0) {
+            return "NoEvents"; // swimmer has no choosen event;
+        }
+        if (currentBreaks < k) {
+            // System.out.println(this.id + ". Pause ist zu Kurz " + orderIndex + " " +
+            // currentBreakTime);
+            return "To less Breaks " + currentBreaks;
+        }
+        return "Enough Breaks " + currentBreaks;
+    }
+
+    public String toStringBreakAfterNumber(int orderIndex) {
+        int k = neededBreakK;
+        int currentIndex = orderIndex + 1;
+        int currentBreaks = 0;
+        boolean hasEventAfter = false;
+
+        int[][] orderGender = this.isMale ? Competition.orderMale : Competition.orderFemale;
+        for (; currentIndex < orderGender.length; currentIndex++) {
+            int eventIndex = orderGender[currentIndex][0];
+            if (!eventIndices[currentIndex]) {
+                if (eventIndex == -1) {
+                    return "No Events Left in this section";
+                } else {
+                    if (eventIndex == -2) {
+                        continue;
+                    }
+                    currentBreaks++;
+                }
+            } else {
+                hasEventAfter = true;
+                break; // last Compeating Event found
+            }
+        }
+        if (hasEventAfter && currentBreaks < k) {
+            // System.out.println(this.id + ". Pause ist zu Kurz " + orderIndex + " " +
+            // currentBreakTime);
+            return "To less Breaks " + currentBreaks;
+        }
+        if (!hasEventAfter) {
+            return "LAST EVENT";
+        }
+        return "Enough breaks " + currentBreaks;
+    }
+
+    public String toStringBreakBefore(int orderIndex) {
+        return toStringBreakBeforeNumber(orderIndex) + " vs. " + toStringBreakAfterNumber(orderIndex);
     }
 }

@@ -1,4 +1,0 @@
-variant;run;score;time_ms;iterations;states
-beamSearchFast;1;16958;18547.599;0.0;954857
-beamSearchFast;2;17044;18747.863;0.0;2119449
-beamSearchFast;3;16925;18038.898;0.0;3164107

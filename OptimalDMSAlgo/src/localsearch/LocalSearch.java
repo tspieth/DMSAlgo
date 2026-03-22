@@ -53,6 +53,41 @@ public class LocalSearch {
         return currentState;
     }
 
+    /**
+     * Standard HillClimbing from Lecture SPS at Universitiy of Mannheim
+     * 
+     * in each Turn the Best Neighbor is choosen;
+     * 
+     * @param current
+     * @return
+     */
+    public static TeamState hillClimbingCompleatlyFly(TeamState current) {
+
+        TeamState currentState = current;
+
+        statesCreated = 0; // reset statesCreated
+        iterations = 0; // reset avgIterations
+        pointsDevelopment = new ArrayList<Integer>();
+
+        while (true) {
+
+            TeamState bestNeighbor = currentState.getBestNeighborFast();
+
+            statesCreated += 1; // add created states to total
+
+            int bestValue = bestNeighbor.getTotalPointsFast();
+            pointsDevelopment.add(bestValue);
+
+            if (bestValue <= currentState.getTotalPointsFast()) {
+                break;
+            }
+
+            currentState = bestNeighbor;
+            iterations++; // update Iterations
+        }
+        return currentState;
+    }
+
     public static TeamState firstChoiceHillClimbing(TeamState current) {
 
         TeamState currentState = current;
@@ -140,7 +175,7 @@ public class LocalSearch {
 
             current.newRandomLineUp();
 
-            allBest.add(hillClimbing(current));
+            allBest.add(hillClimbingCompleatlyFly(current));
 
             avgIterations += iterations;
 
@@ -235,7 +270,7 @@ public class LocalSearch {
         }
     }
 
-    public static TeamState SimulatedAnnealing(TeamState current, ExponentialSchedule schedule) {
+    public static TeamState SimulatedAnnealing(TeamState current, Schedule schedule) {
 
         statesCreated = 0; // reset statesCreated
         iterations = 0; // reset iterations
@@ -251,7 +286,8 @@ public class LocalSearch {
             }
 
             TeamState next = current.getRandomNeighbor();
-
+            statesCreated++;
+            // System.out.println(statesCreated);
             int E = next.getTotalPointsFast() - current.getTotalPointsFast();
 
             if (E > 0) {
@@ -357,7 +393,7 @@ public class LocalSearch {
 
             current.newRandomLineUp();
 
-            allBest.add(hillClimbingFast(current));
+            allBest.add(hillClimbingCompleatlyFly(current));
             tempStatesCreated += statesCreated;
             avgIterations += iterations;
 
@@ -414,7 +450,7 @@ public class LocalSearch {
                 return currentBest;
             } else {
                 currentStates = neighborsBest;
-                System.out.println(best.getTotalPointsFast());
+                // System.out.println(best.getTotalPointsFast());
                 currentBest = best;
             }
         }

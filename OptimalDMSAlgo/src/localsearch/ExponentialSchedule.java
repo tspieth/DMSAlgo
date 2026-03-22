@@ -11,12 +11,9 @@ public class ExponentialSchedule implements Schedule {
         this.minTemp = minTemp;
     }
 
-    public double getTemperature(int round) {
-        if (temperature < minTemp)
-            return 0;
-        double current = temperature;
-        temperature *= alpha;
-        return current;
+    public double getTemperature(int steps) {
+        double currentTemperature = temperature * Math.exp(alpha * steps);
+        return currentTemperature < minTemp ? 0 : temperature;
     }
 
     public void reset(double startTemp) {
